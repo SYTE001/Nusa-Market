@@ -20,6 +20,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
+  const [wishlistPopping, setWishlistPopping] = useState(false);
+
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -32,7 +34,9 @@ export function ProductCard({ product }: ProductCardProps) {
   function handleWishlistClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    setWishlistPopping(true);
     toggleWishlist(product);
+    setTimeout(() => setWishlistPopping(false), 250);
   }
 
   const hasSecondary = product.images.length > 1;
@@ -85,7 +89,7 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Small subtle Wishlist toggle */}
+        {/* Small subtle Wishlist toggle with pop animation */}
         <button
           onClick={handleWishlistClick}
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -94,7 +98,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <Heart
             size={14}
             strokeWidth={1.75}
-            className={isWishlisted ? 'text-red-600 fill-red-600' : 'text-stone-700'}
+            className={`${
+              isWishlisted ? 'text-red-600 fill-red-600' : 'text-stone-700'
+            } ${wishlistPopping ? 'animate-heart-pop' : 'transition-transform duration-150'}`}
             fill={isWishlisted ? 'currentColor' : 'none'}
           />
         </button>

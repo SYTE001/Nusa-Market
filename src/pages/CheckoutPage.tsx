@@ -10,6 +10,7 @@ import { CartItem } from '../components/cart/CartItem';
 import { CartSummary } from '../components/cart/CartSummary';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Dropdown } from '../components/ui/Dropdown';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateOrderId, SHIPPING_COSTS, formatRupiah } from '../utils';
 import type { CheckoutFormData, ShippingMethod } from '../types';
@@ -48,6 +49,7 @@ export default function CheckoutPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(schema),
@@ -180,26 +182,18 @@ export default function CheckoutPage() {
                   autoComplete="address-level2"
                   placeholder="Jakarta Selatan"
                 />
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="province" className="text-[11px] font-semibold text-stone-600 uppercase tracking-[0.12em]">
-                    Province
-                  </label>
-                  <select
-                    id="province"
-                    {...register('province')}
-                    className={`h-10.5 w-full border bg-white px-3 text-sm text-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-900 cursor-pointer ${
-                      errors.province ? 'border-red-500' : 'border-stone-200/90'
-                    }`}
-                  >
-                    <option value="">Select province...</option>
-                    {INDONESIAN_PROVINCES.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.province && <p className="text-[11px] font-medium text-red-600">{errors.province.message}</p>}
-                </div>
+                <Dropdown
+                  id="province"
+                  label="Province"
+                  size="md"
+                  placeholder="Select province..."
+                  options={INDONESIAN_PROVINCES}
+                  value={watch('province') || ''}
+                  onChange={(val) => {
+                    setValue('province', val, { shouldValidate: true });
+                  }}
+                  error={errors.province?.message}
+                />
                 <Input
                   label="Postal Code"
                   {...register('postalCode')}

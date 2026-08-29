@@ -27,7 +27,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => drawerRef.current?.focus(), 50);
+      setTimeout(() => drawerRef.current?.focus(), 40);
     }
   }, [open]);
 
@@ -38,7 +38,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         onClick={onClose}
         aria-hidden="true"
         className={[
-          'fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300',
+          'fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200 ease-out',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         ].join(' ')}
       />
@@ -51,7 +51,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         tabIndex={-1}
         className={[
           'fixed top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl',
-          'transition-transform duration-300 ease-out focus:outline-none',
+          'transition-transform duration-200 ease-out focus:outline-none',
           side === 'right' ? 'right-0' : 'left-0',
           open
             ? 'translate-x-0'
@@ -70,7 +70,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
           <button
             onClick={onClose}
             aria-label="Close drawer"
-            className="ml-auto flex h-8 w-8 items-center justify-center text-stone-400 hover:text-stone-900 transition-colors cursor-pointer"
+            className="ml-auto flex h-8 w-8 items-center justify-center text-stone-400 hover:text-stone-900 transition-colors cursor-pointer active:scale-95"
           >
             <X size={18} strokeWidth={1.5} />
           </button>

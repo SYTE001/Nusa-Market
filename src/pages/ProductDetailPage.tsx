@@ -33,6 +33,14 @@ export default function ProductDetailPage() {
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
   const isWishlisted = useWishlistStore((s) => s.isWishlisted(product?.id ?? ''));
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist);
+  const [wishlistPopping, setWishlistPopping] = useState(false);
+
+  function handleWishlistClick() {
+    if (!product) return;
+    setWishlistPopping(true);
+    toggleWishlist(product);
+    setTimeout(() => setWishlistPopping(false), 250);
+  }
 
   useEffect(() => {
     if (!slug) return;
@@ -265,14 +273,16 @@ export default function ProductDetailPage() {
                   {product.stock === 0 ? 'Out of Stock' : 'Add to Bag'}
                 </Button>
                 <button
-                  onClick={() => toggleWishlist(product)}
+                  onClick={handleWishlistClick}
                   aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-stone-300 bg-white hover:border-stone-950 transition-colors cursor-pointer shadow-2xs"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-stone-300 bg-white hover:border-stone-950 transition-colors active:scale-95 cursor-pointer shadow-2xs"
                 >
                   <Heart
                     size={18}
                     strokeWidth={1.75}
-                    className={isWishlisted ? 'text-red-600 fill-red-600' : 'text-stone-700'}
+                    className={`${
+                      isWishlisted ? 'text-red-600 fill-red-600' : 'text-stone-700'
+                    } ${wishlistPopping ? 'animate-heart-pop' : 'transition-transform duration-150'}`}
                     fill={isWishlisted ? 'currentColor' : 'none'}
                   />
                 </button>

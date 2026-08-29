@@ -35,7 +35,7 @@ export function Navbar() {
 
   useEffect(() => {
     if (searchOverlayOpen) {
-      setTimeout(() => searchRef.current?.focus(), 60);
+      setTimeout(() => searchRef.current?.focus(), 40);
     }
   }, [searchOverlayOpen]);
 
@@ -115,7 +115,7 @@ export function Navbar() {
           <button
             onClick={toggleMobileMenu}
             aria-label="Toggle mobile menu"
-            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-stone-950 lg:hidden cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-stone-950 lg:hidden cursor-pointer active:scale-95 transition-transform"
           >
             {mobileMenuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
           </button>
@@ -123,27 +123,27 @@ export function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="text-xs sm:text-sm font-bold uppercase tracking-[0.24em] text-stone-950 transition-opacity hover:opacity-85"
+            className="text-xs sm:text-sm font-bold uppercase tracking-[0.24em] text-stone-950 transition-opacity hover:opacity-80 active:opacity-70"
             onClick={closeMobileMenu}
           >
             NusaMarket
           </Link>
 
-          {/* Desktop Navigation with refined active indicator */}
+          {/* Desktop Navigation with refined active indicator and subtle interaction */}
           <nav className="hidden lg:flex items-center gap-7">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.to}
-                className={`relative py-1 text-xs uppercase tracking-[0.14em] transition-colors ${
+                className={`relative py-1 text-xs uppercase tracking-[0.14em] transition-all duration-150 ${
                   link.isActive
                     ? 'font-bold text-stone-950'
-                    : 'font-medium text-stone-500 hover:text-stone-950'
+                    : 'font-medium text-stone-500 hover:text-stone-950 hover:opacity-90 active:scale-[0.98]'
                 }`}
               >
                 {link.label}
                 {link.isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-stone-950 rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-stone-950 rounded-full transition-all" />
                 )}
               </Link>
             ))}
@@ -154,14 +154,14 @@ export function Navbar() {
             <button
               onClick={openSearchOverlay}
               aria-label="Open search"
-              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-all duration-150 active:scale-90 cursor-pointer"
             >
               <Search size={18} strokeWidth={1.75} />
             </button>
             <Link
               to="/wishlist"
               aria-label={`Wishlist (${wishlistCount} items)`}
-              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-all duration-150 active:scale-90 cursor-pointer"
             >
               <Heart size={18} strokeWidth={1.75} />
               {wishlistCount > 0 && (
@@ -173,7 +173,7 @@ export function Navbar() {
             <button
               onClick={openCartDrawer}
               aria-label={`Shopping bag (${totalItems} items)`}
-              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-all duration-150 active:scale-90 cursor-pointer"
             >
               <ShoppingBag size={18} strokeWidth={1.75} />
               {totalItems > 0 && (
@@ -188,7 +188,7 @@ export function Navbar() {
 
       {/* Mobile Fullscreen Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-20 bg-white pt-24 pb-8 px-6 flex flex-col justify-between lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 z-20 bg-white pt-24 pb-8 px-6 flex flex-col justify-between lg:hidden overflow-y-auto animate-page-enter">
           <div>
             <nav className="flex flex-col gap-5 pt-2">
               {navLinks.map((link) => (
@@ -199,7 +199,7 @@ export function Navbar() {
                   className={`text-lg tracking-tight transition-colors flex items-center justify-between ${
                     link.isActive
                       ? 'font-bold text-stone-950'
-                      : 'font-medium text-stone-600 hover:text-stone-950'
+                      : 'font-medium text-stone-600 hover:text-stone-950 active:text-stone-950'
                   }`}
                 >
                   <span>{link.label}</span>
@@ -211,7 +211,7 @@ export function Navbar() {
                 <Link
                   to="/wishlist"
                   onClick={closeMobileMenu}
-                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between"
+                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between active:scale-[0.99]"
                 >
                   <span>Wishlist ({wishlistCount})</span>
                   <Heart size={16} strokeWidth={1.5} />
@@ -219,7 +219,7 @@ export function Navbar() {
                 <Link
                   to="/cart"
                   onClick={closeMobileMenu}
-                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between"
+                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between active:scale-[0.99]"
                 >
                   <span>Shopping Bag ({totalItems})</span>
                   <ShoppingBag size={16} strokeWidth={1.5} />
@@ -242,11 +242,11 @@ export function Navbar() {
       {/* Interactive Command-Style Search Modal */}
       {searchOverlayOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-start justify-center pt-20 sm:pt-28 px-4"
+          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-start justify-center pt-20 sm:pt-28 px-4 transition-opacity duration-150"
           onClick={closeSearchOverlay}
         >
           <div
-            className="w-full max-w-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-200"
+            className="w-full max-w-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-dropdown-enter"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Input Header */}
@@ -267,7 +267,7 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="text-xs font-medium text-stone-400 hover:text-stone-900 px-2 cursor-pointer"
+                  className="text-xs font-medium text-stone-400 hover:text-stone-900 px-2 cursor-pointer active:scale-95"
                 >
                   Clear
                 </button>
@@ -275,7 +275,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={closeSearchOverlay}
-                className="ml-2 text-stone-400 hover:text-stone-900 p-1 cursor-pointer"
+                className="ml-2 text-stone-400 hover:text-stone-900 p-1 cursor-pointer active:scale-95"
                 aria-label="Close search"
               >
                 <X size={18} strokeWidth={1.5} />
@@ -295,7 +295,7 @@ export function Navbar() {
                       <button
                         key={tag}
                         onClick={() => handleTagClick(tag)}
-                        className="px-3 py-1.5 text-xs font-medium bg-stone-100/80 text-stone-700 hover:bg-stone-950 hover:text-white transition-all cursor-pointer"
+                        className="px-3 py-1.5 text-xs font-medium bg-stone-100/80 text-stone-700 hover:bg-stone-950 hover:text-white active:scale-95 transition-all cursor-pointer"
                       >
                         {tag}
                       </button>
@@ -340,7 +340,7 @@ export function Navbar() {
                   </div>
                   <button
                     onClick={() => handleSearchSubmit()}
-                    className="mt-4 w-full py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-center text-stone-900 border border-stone-300 hover:border-stone-900 transition-colors cursor-pointer"
+                    className="mt-4 w-full py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-center text-stone-900 border border-stone-300 hover:border-stone-900 active:scale-[0.99] transition-all cursor-pointer"
                   >
                     View All Results for "{query}"
                   </button>

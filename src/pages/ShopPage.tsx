@@ -5,6 +5,7 @@ import type { Product, FilterState } from '../types';
 import { getProducts } from '../services/productService';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Dropdown } from '../components/ui/Dropdown';
 import { categories } from '../data/products';
 
 const PRICE_RANGES = [
@@ -176,33 +177,23 @@ export default function ShopPage() {
               <span className="text-[11px] font-semibold uppercase tracking-wider">Refine:</span>
             </div>
 
-            {/* Price Filter */}
-            <select
+            {/* Price Filter Dropdown */}
+            <Dropdown
+              options={PRICE_RANGES}
               value={filters.priceRange}
-              onChange={(e) => setFilter('price', e.target.value)}
-              aria-label="Filter by price"
-              className="h-9 border border-stone-300/90 bg-white px-3 text-xs text-stone-800 font-medium focus:outline-none focus:border-stone-950 cursor-pointer shadow-2xs"
-            >
-              {PRICE_RANGES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilter('price', val)}
+              ariaLabel="Filter by price tier"
+              className="min-w-[155px]"
+            />
 
-            {/* Rating Filter */}
-            <select
+            {/* Rating Filter Dropdown */}
+            <Dropdown
+              options={RATING_OPTIONS}
               value={filters.rating}
-              onChange={(e) => setFilter('rating', e.target.value)}
-              aria-label="Filter by rating"
-              className="h-9 border border-stone-300/90 bg-white px-3 text-xs text-stone-800 font-medium focus:outline-none focus:border-stone-950 cursor-pointer shadow-2xs"
-            >
-              {RATING_OPTIONS.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilter('rating', val)}
+              ariaLabel="Filter by rating"
+              className="min-w-[130px]"
+            />
           </div>
 
           {/* Sort Dropdown */}
@@ -211,18 +202,14 @@ export default function ShopPage() {
               <ArrowUpDown size={14} />
               <span className="text-[11px] font-semibold uppercase tracking-wider">Sort:</span>
             </div>
-            <select
+            <Dropdown
+              options={SORT_OPTIONS}
               value={filters.sort}
-              onChange={(e) => setFilter('sort', e.target.value)}
-              aria-label="Sort products"
-              className="h-9 border border-stone-300/90 bg-white px-3 text-xs text-stone-800 font-medium focus:outline-none focus:border-stone-950 cursor-pointer shadow-2xs"
-            >
-              {SORT_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilter('sort', val)}
+              ariaLabel="Sort products"
+              align="right"
+              className="min-w-[170px]"
+            />
           </div>
         </div>
 
