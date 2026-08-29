@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Menu, X, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Search, Heart, ShoppingBag, Menu, X } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useWishlistStore } from '../../stores/wishlistStore';
 import { useUIStore } from '../../stores/uiStore';
-import { products } from '../../data/products';
-import { formatRupiah } from '../../utils';
+import { SearchModal } from './SearchModal';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState('');
-  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -34,48 +30,12 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    if (searchOverlayOpen) {
-      setTimeout(() => searchRef.current?.focus(), 40);
-    }
-  }, [searchOverlayOpen]);
-
-  useEffect(() => {
     if (mobileMenuOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     return () => {
       document.body.style.overflow = '';
     };
   }, [mobileMenuOpen]);
-
-  function handleSearchSubmit(e?: React.FormEvent) {
-    if (e) e.preventDefault();
-    if (!query.trim()) return;
-    closeSearchOverlay();
-    closeMobileMenu();
-    navigate(`/shop?search=${encodeURIComponent(query.trim())}`);
-    setQuery('');
-  }
-
-  function handleTagClick(tag: string) {
-    closeSearchOverlay();
-    closeMobileMenu();
-    navigate(`/shop?search=${encodeURIComponent(tag)}`);
-  }
-
-  // Live search preview matches
-  const liveResults =
-    query.trim().length > 1
-      ? products
-          .filter(
-            (p) =>
-              p.name.toLowerCase().includes(query.toLowerCase()) ||
-              p.brand.toLowerCase().includes(query.toLowerCase()) ||
-              p.category.toLowerCase().includes(query.toLowerCase())
-          )
-          .slice(0, 4)
-      : [];
-
-  const POPULAR_SEARCHES = ['Heavyweight Hoodie', 'Utility Cargo', 'Canvas Tote', 'Batik Shirt', 'Oversized Tee'];
 
   // Route active state logic
   const isHomeActive = location.pathname === '/' && !location.hash;
@@ -129,7 +89,7 @@ export function Navbar() {
             NusaMarket
           </Link>
 
-          {/* Desktop Navigation with refined active indicator and subtle interaction */}
+          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-7">
             {navLinks.map((link) => (
               <Link
@@ -239,127 +199,8 @@ export function Navbar() {
         </div>
       )}
 
-      {/* Interactive Command-Style Search Modal */}
-      {searchOverlayOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-start justify-center pt-20 sm:pt-28 px-4 transition-opacity duration-150"
-          onClick={closeSearchOverlay}
-        >
-          <div
-            className="w-full max-w-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-dropdown-enter"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Input Header */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="flex items-center border-b border-stone-200 px-5 py-4 bg-[#fcfbfa]"
-            >
-              <Search size={20} className="text-stone-400 shrink-0 mr-3" strokeWidth={1.75} />
-              <input
-                ref={searchRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search collection, brands, categories..."
-                className="w-full text-base text-stone-900 placeholder:text-stone-400 bg-transparent focus:outline-none"
-                aria-label="Search collection"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery('')}
-                  className="text-xs font-medium text-stone-400 hover:text-stone-900 px-2 cursor-pointer active:scale-95"
-                >
-                  Clear
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={closeSearchOverlay}
-                className="ml-2 text-stone-400 hover:text-stone-900 p-1 cursor-pointer active:scale-95"
-                aria-label="Close search"
-              >
-                <X size={18} strokeWidth={1.5} />
-              </button>
-            </form>
-
-            {/* Content Area */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto">
-              {/* Popular tags */}
-              {!query && (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 mb-3">
-                    Trending Searches
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {POPULAR_SEARCHES.map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => handleTagClick(tag)}
-                        className="px-3 py-1.5 text-xs font-medium bg-stone-100/80 text-stone-700 hover:bg-stone-950 hover:text-white active:scale-95 transition-all cursor-pointer"
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Live matching results */}
-              {query && liveResults.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 mb-3">
-                    Instant Suggestions ({liveResults.length})
-                  </p>
-                  <div className="divide-y divide-stone-100">
-                    {liveResults.map((product) => (
-                      <Link
-                        key={product.id}
-                        to={`/product/${product.slug}`}
-                        onClick={closeSearchOverlay}
-                        className="flex items-center gap-4 py-3 hover:bg-stone-50/80 px-2 transition-colors group"
-                      >
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="h-12 w-9 object-cover bg-stone-100 shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-500">
-                            {product.brand}
-                          </p>
-                          <p className="text-xs sm:text-sm font-medium text-stone-900 truncate group-hover:text-stone-600">
-                            {product.name}
-                          </p>
-                          <p className="text-xs font-semibold text-stone-950">
-                            {formatRupiah(product.price)}
-                          </p>
-                        </div>
-                        <ArrowRight size={14} className="text-stone-300 group-hover:text-stone-900 transition-colors" />
-                      </Link>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => handleSearchSubmit()}
-                    className="mt-4 w-full py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-center text-stone-900 border border-stone-300 hover:border-stone-900 active:scale-[0.99] transition-all cursor-pointer"
-                  >
-                    View All Results for "{query}"
-                  </button>
-                </div>
-              )}
-
-              {/* No results */}
-              {query && liveResults.length === 0 && (
-                <div className="py-8 text-center">
-                  <p className="text-sm font-medium text-stone-900">No products found for "{query}"</p>
-                  <p className="text-xs text-stone-500 mt-1">
-                    Try searching for "hoodie", "tee", "cargo", or "jacket"
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Redesigned Editorial Search Modal */}
+      <SearchModal isOpen={searchOverlayOpen} onClose={closeSearchOverlay} />
     </>
   );
 }
