@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, Menu, X, ArrowRight } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useWishlistStore } from '../../stores/wishlistStore';
@@ -12,6 +12,8 @@ export function Navbar() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const totalItems = useCartStore((s) => s.totalItems());
   const wishlistCount = useWishlistStore((s) => s.ids.length);
@@ -61,29 +63,46 @@ export function Navbar() {
   }
 
   // Live search preview matches
-  const liveResults = query.trim().length > 1
-    ? products
-        .filter(
-          (p) =>
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            p.brand.toLowerCase().includes(query.toLowerCase()) ||
-            p.category.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 4)
-    : [];
-
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
-      isActive ? 'text-stone-950 underline underline-offset-8 decoration-stone-950' : 'text-stone-500 hover:text-stone-950'
-    }`;
+  const liveResults =
+    query.trim().length > 1
+      ? products
+          .filter(
+            (p) =>
+              p.name.toLowerCase().includes(query.toLowerCase()) ||
+              p.brand.toLowerCase().includes(query.toLowerCase()) ||
+              p.category.toLowerCase().includes(query.toLowerCase())
+          )
+          .slice(0, 4)
+      : [];
 
   const POPULAR_SEARCHES = ['Heavyweight Hoodie', 'Utility Cargo', 'Canvas Tote', 'Batik Shirt', 'Oversized Tee'];
+
+  // Route active state logic
+  const isHomeActive = location.pathname === '/' && !location.hash;
+  const isAboutActive = location.hash === '#about' || (location.pathname === '/' && location.hash === '#about');
+  const isNewArrivalsActive =
+    location.pathname === '/shop' && searchParams.get('sort') === 'newest';
+  const isCollectionsActive =
+    location.pathname === '/shop' &&
+    (searchParams.get('category') === 'all' ||
+      searchParams.get('category') === 'All' ||
+      Boolean(searchParams.get('category')));
+  const isShopActive =
+    location.pathname === '/shop' && !isNewArrivalsActive && !isCollectionsActive;
+
+  const navLinks = [
+    { label: 'Home', to: '/', isActive: isHomeActive },
+    { label: 'Shop', to: '/shop', isActive: isShopActive },
+    { label: 'New Arrivals', to: '/shop?sort=newest', isActive: isNewArrivalsActive },
+    { label: 'Collections', to: '/shop?category=All', isActive: isCollectionsActive },
+    { label: 'About', to: '/#about', isActive: isAboutActive },
+  ];
 
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-30 transition-all duration-200 bg-white/95 backdrop-blur-md ${
-          scrolled ? 'border-b border-stone-200/80 shadow-xs' : 'border-b border-stone-200/40'
+          scrolled ? 'border-b border-stone-200/80 shadow-xs' : 'border-b border-stone-200/50'
         }`}
       >
         {/* Micro announcement bar */}
@@ -110,20 +129,24 @@ export function Navbar() {
             NusaMarket
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
-            <NavLink to="/shop" className={navLinkClass}>
-              Shop
-            </NavLink>
-            <NavLink to="/shop?sort=newest" className={navLinkClass}>
-              New Arrivals
-            </NavLink>
-            <NavLink to="/shop?category=all" className={navLinkClass}>
-              Collections
-            </NavLink>
-            <NavLink to="/#about" className={navLinkClass}>
-              Ethos
-            </NavLink>
+          {/* Desktop Navigation with refined active indicator */}
+          <nav className="hidden lg:flex items-center gap-7">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={`relative py-1 text-xs uppercase tracking-[0.14em] transition-colors ${
+                  link.isActive
+                    ? 'font-bold text-stone-950'
+                    : 'font-medium text-stone-500 hover:text-stone-950'
+                }`}
+              >
+                {link.label}
+                {link.isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-stone-950 rounded-full" />
+                )}
+              </Link>
+            ))}
           </nav>
 
           {/* Action icons */}
@@ -167,35 +190,50 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-20 bg-white pt-24 pb-8 px-6 flex flex-col justify-between lg:hidden overflow-y-auto">
           <div>
-            <nav className="flex flex-col gap-6 pt-4">
-              {[
-                { to: '/shop', label: 'All Products' },
-                { to: '/shop?sort=newest', label: 'New Arrivals' },
-                { to: '/shop?category=T-Shirts', label: 'T-Shirts' },
-                { to: '/shop?category=Hoodies', label: 'Hoodies' },
-                { to: '/shop?category=Jackets', label: 'Outerwear' },
-                { to: '/shop?category=Bags', label: 'Bags & Accessories' },
-                { to: '/wishlist', label: 'Curated Wishlist' },
-                { to: '/cart', label: 'Shopping Bag' },
-              ].map((link) => (
+            <nav className="flex flex-col gap-5 pt-2">
+              {navLinks.map((link) => (
                 <Link
-                  key={link.to}
+                  key={link.label}
                   to={link.to}
                   onClick={closeMobileMenu}
-                  className="text-lg font-medium text-stone-900 tracking-tight hover:text-stone-500 transition-colors"
+                  className={`text-lg tracking-tight transition-colors flex items-center justify-between ${
+                    link.isActive
+                      ? 'font-bold text-stone-950'
+                      : 'font-medium text-stone-600 hover:text-stone-950'
+                  }`}
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {link.isActive && <span className="h-1.5 w-1.5 rounded-full bg-stone-950" />}
                 </Link>
               ))}
+
+              <div className="border-t border-stone-200/80 my-2 pt-4 flex flex-col gap-4">
+                <Link
+                  to="/wishlist"
+                  onClick={closeMobileMenu}
+                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between"
+                >
+                  <span>Wishlist ({wishlistCount})</span>
+                  <Heart size={16} strokeWidth={1.5} />
+                </Link>
+                <Link
+                  to="/cart"
+                  onClick={closeMobileMenu}
+                  className="text-sm font-medium text-stone-600 hover:text-stone-950 transition-colors flex items-center justify-between"
+                >
+                  <span>Shopping Bag ({totalItems})</span>
+                  <ShoppingBag size={16} strokeWidth={1.5} />
+                </Link>
+              </div>
             </nav>
           </div>
 
           <div className="border-t border-stone-200/80 pt-6 mt-6">
-            <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-2">
+            <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1.5">
               NusaMarket Editorial
             </p>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Discover thoughtfully crafted essentials from independent Indonesian creators.
+              Thoughtfully crafted essentials from independent Indonesian creators.
             </p>
           </div>
         </div>

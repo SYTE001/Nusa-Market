@@ -13,9 +13,9 @@ export function Skeleton({ className = '' }: SkeletonProps) {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col gap-3">
-      <Skeleton className="aspect-[3/4] w-full" />
-      <div className="flex flex-col gap-2 pt-1">
+    <div className="flex flex-col gap-2.5">
+      <Skeleton className="aspect-[4/5] w-full" />
+      <div className="flex flex-col gap-1.5 pt-1">
         <Skeleton className="h-2.5 w-1/4" />
         <Skeleton className="h-3.5 w-3/4" />
         <Skeleton className="h-3 w-1/3" />
@@ -27,22 +27,22 @@ export function ProductCardSkeleton() {
 
 export function ProductDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-7 flex gap-4">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
           <div className="hidden sm:flex flex-col gap-3">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-24 w-18" />
+              <Skeleton key={i} className="h-20 w-16" />
             ))}
           </div>
           <Skeleton className="flex-1 aspect-[3/4]" />
         </div>
-        <div className="lg:col-span-5 flex flex-col gap-5 pt-2">
+        <div className="lg:col-span-5 flex flex-col gap-5 pt-1">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-8 w-4/5" />
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-7 w-36" />
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-16 w-full" />
           <Skeleton className="h-12 w-full" />
         </div>
       </div>

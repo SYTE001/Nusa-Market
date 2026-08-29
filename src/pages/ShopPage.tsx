@@ -44,8 +44,8 @@ function filterProducts(products: Product[], filters: FilterState): Product[] {
   }
 
   // Category
-  if (filters.category && filters.category !== 'All') {
-    result = result.filter((p) => p.category === filters.category);
+  if (filters.category && filters.category.toLowerCase() !== 'all') {
+    result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
   }
 
   // Price
@@ -119,7 +119,7 @@ export default function ShopPage() {
   }
 
   const hasActiveFilters =
-    filters.category !== 'All' ||
+    (filters.category.toLowerCase() !== 'all' && filters.category !== '') ||
     filters.priceRange !== 'all' ||
     filters.rating !== 'all' ||
     filters.sort !== 'featured' ||
