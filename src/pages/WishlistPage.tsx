@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Heart, ArrowRight } from 'lucide-react';
 import { useWishlistStore } from '../stores/wishlistStore';
 import { useCartStore } from '../stores/cartStore';
 import { useUIStore } from '../stores/uiStore';
@@ -16,7 +16,6 @@ export default function WishlistPage() {
   const addItem = useCartStore((s) => s.addItem);
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
-  // Resolve products from IDs
   const wishlistProducts = products.filter((p) => ids.includes(p.id));
 
   function handleAddToCart(productId: string) {
@@ -27,60 +26,84 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 lg:px-8">
-      <h1 className="mb-8 text-xs font-semibold uppercase tracking-widest text-stone-500">
-        Wishlist
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      {/* Header */}
+      <div className="mb-8 border-b border-stone-200/80 pb-4 flex items-baseline justify-between">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            Personal Curation
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950 mt-1">
+            Saved Pieces ({wishlistProducts.length})
+          </h1>
+        </div>
         {wishlistProducts.length > 0 && (
-          <span className="ml-2 text-stone-400">({wishlistProducts.length})</span>
+          <Link
+            to="/shop"
+            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors flex items-center gap-1"
+          >
+            <span>Explore More</span>
+            <ArrowRight size={13} />
+          </Link>
         )}
-      </h1>
+      </div>
 
       {wishlistProducts.length === 0 ? (
         <EmptyState
           type="wishlist"
-          action={{ label: 'Continue Shopping', onClick: () => navigate('/shop') }}
+          action={{ label: 'Explore the Catalog', onClick: () => navigate('/shop') }}
         />
       ) : (
-        <div className="flex flex-col divide-y divide-stone-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {wishlistProducts.map((product) => (
-            <div key={product.id} className="flex gap-4 py-5">
-              {/* Image */}
-              <Link to={`/product/${product.slug}`} className="shrink-0">
-                <div className="h-24 w-20 overflow-hidden bg-stone-50">
+            <div key={product.id} className="group flex flex-col bg-white border border-stone-200/80 overflow-hidden shadow-2xs">
+              {/* Image Frame */}
+              <div className="relative aspect-[3/4] overflow-hidden bg-stone-100">
+                <Link to={`/product/${product.slug}`} className="block h-full w-full">
                   <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     onError={(e) => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
                   />
-                </div>
-              </Link>
+                </Link>
+                <button
+                  onClick={() => removeWishlist(product.id)}
+                  aria-label={`Remove ${product.name} from wishlist`}
+                  className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-red-600 shadow-xs hover:bg-white transition-colors cursor-pointer"
+                >
+                  <Heart size={15} fill="currentColor" />
+                </button>
+              </div>
 
               {/* Info */}
-              <div className="flex flex-1 flex-col justify-between gap-2 min-w-0">
+              <div className="p-4 flex flex-col gap-2 flex-1 justify-between">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-500">{product.brand}</p>
-                  <Link to={`/product/${product.slug}`} className="text-sm font-medium text-stone-900 hover:underline">
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+                      {product.brand}
+                    </span>
+                    <Rating value={product.rating} count={product.reviewCount} size="sm" />
+                  </div>
+                  <Link
+                    to={`/product/${product.slug}`}
+                    className="text-xs sm:text-[13px] font-medium text-stone-900 hover:underline line-clamp-1"
+                  >
                     {product.name}
                   </Link>
-                  <div className="mt-1">
-                    <Rating value={product.rating} count={product.reviewCount} />
-                  </div>
-                  <p className="mt-1 text-sm font-semibold text-stone-900">{formatRupiah(product.price)}</p>
+                  <p className="text-xs sm:text-sm font-semibold text-stone-950 mt-1">
+                    {formatRupiah(product.price)}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Button size="sm" onClick={() => handleAddToCart(product.id)}>
+                <div className="pt-2">
+                  <Button
+                    size="sm"
+                    fullWidth
+                    onClick={() => handleAddToCart(product.id)}
+                  >
                     Add to Bag
                   </Button>
-                  <button
-                    onClick={() => removeWishlist(product.id)}
-                    aria-label={`Remove ${product.name} from wishlist`}
-                    className="flex items-center gap-1 text-xs text-stone-400 hover:text-red-500 transition-colors"
-                  >
-                    <Heart size={12} fill="currentColor" />
-                    Remove
-                  </button>
                 </div>
               </div>
             </div>
@@ -90,4 +113,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-

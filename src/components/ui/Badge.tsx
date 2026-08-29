@@ -1,3 +1,4 @@
+import React from 'react';
 
 type BadgeProps = {
   children: React.ReactNode;
@@ -6,17 +7,17 @@ type BadgeProps = {
 };
 
 const variantMap: Record<string, string> = {
-  new: 'bg-emerald-100 text-emerald-800',
-  sale: 'bg-red-100 text-red-700',
-  bestseller: 'bg-amber-100 text-amber-800',
-  featured: 'bg-stone-100 text-stone-700',
+  new: 'bg-stone-900 text-stone-50 border border-stone-800',
+  sale: 'bg-stone-50 text-stone-900 border border-stone-300 font-bold',
+  bestseller: 'bg-stone-100 text-stone-900 border border-stone-300/80',
+  featured: 'bg-stone-50 text-stone-700 border border-stone-200',
 };
 
 export function Badge({ children, variant = 'featured', className = '' }: BadgeProps) {
   return (
     <span
       className={[
-        'inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest',
+        'inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] shadow-2xs',
         variantMap[variant] ?? variantMap.featured,
         className,
       ]
@@ -27,4 +28,3 @@ export function Badge({ children, variant = 'featured', className = '' }: BadgeP
     </span>
   );
 }
-

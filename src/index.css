@@ -1,31 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-canvas: #fcfbfa;
+  --color-canvas-subtle: #f5f4f0;
+  --color-ink: #141413;
+  --color-ink-muted: #6e6d68;
+  --color-border-subtle: #eae8e3;
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-body {
-  font-family: theme(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #1c1917;
-  background: #ffffff;
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
 }
 
-/* Focus ring */
+body {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #18181b;
+  background-color: #faf9f7;
+  letter-spacing: -0.01em;
+}
+
+/* Editorial selection */
+::selection {
+  background-color: #18181b;
+  color: #faf9f7;
+}
+
+/* Crisp focus rings */
 :focus-visible {
-  outline: 2px solid #1c1917;
+  outline: 2px solid #18181b;
   outline-offset: 2px;
 }
 
-/* Reduced motion */
+/* Custom refined scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf9f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

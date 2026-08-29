@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 type DrawerProps = {
@@ -26,7 +26,9 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
   }, [open, onClose]);
 
   useEffect(() => {
-    if (open) drawerRef.current?.focus();
+    if (open) {
+      setTimeout(() => drawerRef.current?.focus(), 50);
+    }
   }, [open]);
 
   return (
@@ -36,7 +38,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         onClick={onClose}
         aria-hidden="true"
         className={[
-          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300',
+          'fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         ].join(' ')}
       />
@@ -49,7 +51,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         tabIndex={-1}
         className={[
           'fixed top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl',
-          'transition-transform duration-300 ease-in-out focus:outline-none',
+          'transition-transform duration-300 ease-out focus:outline-none',
           side === 'right' ? 'right-0' : 'left-0',
           open
             ? 'translate-x-0'
@@ -59,14 +61,18 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         ].join(' ')}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
-          {title && <h2 className="text-sm font-semibold uppercase tracking-widest text-stone-900">{title}</h2>}
+        <div className="flex items-center justify-between border-b border-stone-200/80 px-6 py-4.5 bg-[#fdfcfb]">
+          {title && (
+            <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              {title}
+            </h2>
+          )}
           <button
             onClick={onClose}
             aria-label="Close drawer"
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-none text-stone-500 hover:bg-stone-100 transition-colors"
+            className="ml-auto flex h-8 w-8 items-center justify-center text-stone-400 hover:text-stone-900 transition-colors cursor-pointer"
           >
-            <X size={18} />
+            <X size={18} strokeWidth={1.5} />
           </button>
         </div>
         {/* Content */}
@@ -75,4 +81,3 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
     </>
   );
 }
-

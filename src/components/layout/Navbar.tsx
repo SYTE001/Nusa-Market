@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ArrowRight } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useWishlistStore } from '../../stores/wishlistStore';
 import { useUIStore } from '../../stores/uiStore';
+import { products } from '../../data/products';
+import { formatRupiah } from '../../utils';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -13,7 +15,15 @@ export function Navbar() {
 
   const totalItems = useCartStore((s) => s.totalItems());
   const wishlistCount = useWishlistStore((s) => s.ids.length);
-  const { openCartDrawer, mobileMenuOpen, toggleMobileMenu, closeMobileMenu, searchOverlayOpen, openSearchOverlay, closeSearchOverlay } = useUIStore();
+  const {
+    openCartDrawer,
+    mobileMenuOpen,
+    toggleMobileMenu,
+    closeMobileMenu,
+    searchOverlayOpen,
+    openSearchOverlay,
+    closeSearchOverlay,
+  } = useUIStore();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 8);
@@ -23,18 +33,20 @@ export function Navbar() {
 
   useEffect(() => {
     if (searchOverlayOpen) {
-      setTimeout(() => searchRef.current?.focus(), 50);
+      setTimeout(() => searchRef.current?.focus(), 60);
     }
   }, [searchOverlayOpen]);
 
   useEffect(() => {
     if (mobileMenuOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [mobileMenuOpen]);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSearchSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
     if (!query.trim()) return;
     closeSearchOverlay();
     closeMobileMenu();
@@ -42,70 +54,107 @@ export function Navbar() {
     setQuery('');
   }
 
+  function handleTagClick(tag: string) {
+    closeSearchOverlay();
+    closeMobileMenu();
+    navigate(`/shop?search=${encodeURIComponent(tag)}`);
+  }
+
+  // Live search preview matches
+  const liveResults = query.trim().length > 1
+    ? products
+        .filter(
+          (p) =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            p.brand.toLowerCase().includes(query.toLowerCase()) ||
+            p.category.toLowerCase().includes(query.toLowerCase())
+        )
+        .slice(0, 4)
+    : [];
+
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-xs font-medium uppercase tracking-widest transition-colors ${isActive ? 'text-stone-900' : 'text-stone-500 hover:text-stone-900'}`;
+    `text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
+      isActive ? 'text-stone-950 underline underline-offset-8 decoration-stone-950' : 'text-stone-500 hover:text-stone-950'
+    }`;
+
+  const POPULAR_SEARCHES = ['Heavyweight Hoodie', 'Utility Cargo', 'Canvas Tote', 'Batik Shirt', 'Oversized Tee'];
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-30 bg-white transition-shadow duration-200 ${scrolled ? 'shadow-sm' : ''}`}
+        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-200 bg-white/95 backdrop-blur-md ${
+          scrolled ? 'border-b border-stone-200/80 shadow-xs' : 'border-b border-stone-200/40'
+        }`}
       >
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 lg:px-8">
-          {/* Mobile: menu */}
+        {/* Micro announcement bar */}
+        <div className="bg-stone-950 text-stone-200 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase py-1.5 px-4 text-center select-none border-b border-stone-800">
+          Complimentary shipping on all national orders above Rp 500.000
+        </div>
+
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Mobile hamburger */}
           <button
             onClick={toggleMobileMenu}
-            aria-label="Toggle menu"
-            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-stone-900 lg:hidden"
+            aria-label="Toggle mobile menu"
+            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-stone-950 lg:hidden cursor-pointer"
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileMenuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
           </button>
 
           {/* Logo */}
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2 text-sm font-bold uppercase tracking-[0.2em] text-stone-900 lg:static lg:translate-x-0"
+            className="text-xs sm:text-sm font-bold uppercase tracking-[0.24em] text-stone-950 transition-opacity hover:opacity-85"
             onClick={closeMobileMenu}
           >
             NusaMarket
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-7">
-            <NavLink to="/shop" className={navLinkClass}>Shop</NavLink>
-            <NavLink to="/shop?filter=new" className={navLinkClass}>New Arrivals</NavLink>
-            <NavLink to="/shop?category=all" className={navLinkClass}>Collections</NavLink>
-            <NavLink to="/#about" className={navLinkClass}>About</NavLink>
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <NavLink to="/shop" className={navLinkClass}>
+              Shop
+            </NavLink>
+            <NavLink to="/shop?sort=newest" className={navLinkClass}>
+              New Arrivals
+            </NavLink>
+            <NavLink to="/shop?category=all" className={navLinkClass}>
+              Collections
+            </NavLink>
+            <NavLink to="/#about" className={navLinkClass}>
+              Ethos
+            </NavLink>
           </nav>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1">
+          {/* Action icons */}
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={openSearchOverlay}
-              aria-label="Search"
-              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
+              aria-label="Open search"
+              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
             >
-              <Search size={18} />
+              <Search size={18} strokeWidth={1.75} />
             </button>
             <Link
               to="/wishlist"
               aria-label={`Wishlist (${wishlistCount} items)`}
-              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
+              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
             >
-              <Heart size={18} />
+              <Heart size={18} strokeWidth={1.75} />
               {wishlistCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center bg-stone-900 text-[10px] font-bold text-white">
+                <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-stone-950 px-1 text-[9px] font-bold text-white shadow-xs">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
             </Link>
             <button
               onClick={openCartDrawer}
-              aria-label={`Cart (${totalItems} items)`}
-              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
+              aria-label={`Shopping bag (${totalItems} items)`}
+              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-colors cursor-pointer"
             >
-              <ShoppingBag size={18} />
+              <ShoppingBag size={18} strokeWidth={1.75} />
               {totalItems > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center bg-stone-900 text-[10px] font-bold text-white">
+                <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-stone-950 px-1 text-[9px] font-bold text-white shadow-xs">
                   {totalItems > 9 ? '9+' : totalItems}
                 </span>
               )}
@@ -114,76 +163,165 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Fullscreen Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-20 bg-white pt-14 lg:hidden">
-          <nav className="flex flex-col divide-y divide-stone-100">
-            {[
-              { to: '/shop', label: 'Shop' },
-              { to: '/shop?filter=new', label: 'New Arrivals' },
-              { to: '/shop?category=all', label: 'Collections' },
-              { to: '/#about', label: 'About' },
-              { to: '/wishlist', label: 'Wishlist' },
-              { to: '/cart', label: 'Your Bag' },
-            ].map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={closeMobileMenu}
-                className="px-6 py-4 text-sm font-medium text-stone-900"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          {/* Mobile Search */}
-          <div className="px-6 pt-6">
-            <form onSubmit={handleSearch} className="flex items-center border border-stone-200">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search products..."
-                className="flex-1 h-10 px-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none"
-                aria-label="Search"
-              />
-              <button type="submit" className="flex h-10 w-10 items-center justify-center text-stone-600">
-                <Search size={16} />
-              </button>
-            </form>
+        <div className="fixed inset-0 z-20 bg-white pt-24 pb-8 px-6 flex flex-col justify-between lg:hidden overflow-y-auto">
+          <div>
+            <nav className="flex flex-col gap-6 pt-4">
+              {[
+                { to: '/shop', label: 'All Products' },
+                { to: '/shop?sort=newest', label: 'New Arrivals' },
+                { to: '/shop?category=T-Shirts', label: 'T-Shirts' },
+                { to: '/shop?category=Hoodies', label: 'Hoodies' },
+                { to: '/shop?category=Jackets', label: 'Outerwear' },
+                { to: '/shop?category=Bags', label: 'Bags & Accessories' },
+                { to: '/wishlist', label: 'Curated Wishlist' },
+                { to: '/cart', label: 'Shopping Bag' },
+              ].map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium text-stone-900 tracking-tight hover:text-stone-500 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="border-t border-stone-200/80 pt-6 mt-6">
+            <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-2">
+              NusaMarket Editorial
+            </p>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Discover thoughtfully crafted essentials from independent Indonesian creators.
+            </p>
           </div>
         </div>
       )}
 
-      {/* Search overlay (desktop) */}
+      {/* Interactive Command-Style Search Modal */}
       {searchOverlayOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-start justify-center pt-20 sm:pt-28 px-4"
           onClick={closeSearchOverlay}
         >
           <div
-            className="mx-auto mt-20 max-w-xl px-4"
+            className="w-full max-w-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <form onSubmit={handleSearch} className="flex items-center bg-white shadow-xl">
+            {/* Input Header */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center border-b border-stone-200 px-5 py-4 bg-[#fcfbfa]"
+            >
+              <Search size={20} className="text-stone-400 shrink-0 mr-3" strokeWidth={1.75} />
               <input
                 ref={searchRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search products, brands, categories..."
-                className="flex-1 h-12 px-4 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none"
-                aria-label="Search"
+                placeholder="Search collection, brands, categories..."
+                className="w-full text-base text-stone-900 placeholder:text-stone-400 bg-transparent focus:outline-none"
+                aria-label="Search collection"
               />
-              <button type="submit" className="flex h-12 w-12 items-center justify-center text-stone-600 hover:text-stone-900">
-                <Search size={18} />
-              </button>
-              <button type="button" onClick={closeSearchOverlay} className="flex h-12 w-12 items-center justify-center text-stone-600 hover:text-stone-900">
-                <X size={18} />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="text-xs font-medium text-stone-400 hover:text-stone-900 px-2 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={closeSearchOverlay}
+                className="ml-2 text-stone-400 hover:text-stone-900 p-1 cursor-pointer"
+                aria-label="Close search"
+              >
+                <X size={18} strokeWidth={1.5} />
               </button>
             </form>
+
+            {/* Content Area */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {/* Popular tags */}
+              {!query && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 mb-3">
+                    Trending Searches
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {POPULAR_SEARCHES.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => handleTagClick(tag)}
+                        className="px-3 py-1.5 text-xs font-medium bg-stone-100/80 text-stone-700 hover:bg-stone-950 hover:text-white transition-all cursor-pointer"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Live matching results */}
+              {query && liveResults.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 mb-3">
+                    Instant Suggestions ({liveResults.length})
+                  </p>
+                  <div className="divide-y divide-stone-100">
+                    {liveResults.map((product) => (
+                      <Link
+                        key={product.id}
+                        to={`/product/${product.slug}`}
+                        onClick={closeSearchOverlay}
+                        className="flex items-center gap-4 py-3 hover:bg-stone-50/80 px-2 transition-colors group"
+                      >
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="h-12 w-9 object-cover bg-stone-100 shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+                            {product.brand}
+                          </p>
+                          <p className="text-xs sm:text-sm font-medium text-stone-900 truncate group-hover:text-stone-600">
+                            {product.name}
+                          </p>
+                          <p className="text-xs font-semibold text-stone-950">
+                            {formatRupiah(product.price)}
+                          </p>
+                        </div>
+                        <ArrowRight size={14} className="text-stone-300 group-hover:text-stone-900 transition-colors" />
+                      </Link>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => handleSearchSubmit()}
+                    className="mt-4 w-full py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-center text-stone-900 border border-stone-300 hover:border-stone-900 transition-colors cursor-pointer"
+                  >
+                    View All Results for "{query}"
+                  </button>
+                </div>
+              )}
+
+              {/* No results */}
+              {query && liveResults.length === 0 && (
+                <div className="py-8 text-center">
+                  <p className="text-sm font-medium text-stone-900">No products found for "{query}"</p>
+                  <p className="text-xs text-stone-500 mt-1">
+                    Try searching for "hoodie", "tee", "cargo", or "jacket"
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
     </>
   );
 }
-
