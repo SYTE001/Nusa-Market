@@ -1,19 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Truck, ArrowLeft } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { CartItem } from '../components/cart/CartItem';
 import { CartSummary } from '../components/cart/CartSummary';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
-import { formatRupiah } from '../utils';
+import { formatRupiah, FREE_SHIPPING_THRESHOLD } from '../utils';
 
 export default function CartPage() {
+  useDocumentTitle('Shopping Bag — NusaMarket');
+
   const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
+  const totalItems = useCartStore((s) => s.totalItems());
   const subtotal = useCartStore((s) => s.subtotal());
   const clearCart = useCartStore((s) => s.clearCart);
 
-  const FREE_SHIPPING_THRESHOLD = 500000;
   const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
 
   return (
@@ -21,17 +24,17 @@ export default function CartPage() {
       {/* Header */}
       <div className="mb-8 border-b border-stone-200/80 pb-4 flex items-baseline justify-between">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             Checkout Preparation
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950 mt-1">
-            Shopping Bag ({items.reduce((acc, item) => acc + item.quantity, 0)})
+            Shopping Bag ({totalItems})
           </h1>
         </div>
         {items.length > 0 && (
           <button
             onClick={clearCart}
-            className="text-xs text-stone-400 hover:text-red-600 transition-colors cursor-pointer"
+            className="cursor-pointer text-xs text-stone-500 transition-colors duration-150 hover:text-red-600"
           >
             Empty Bag
           </button>
@@ -48,11 +51,11 @@ export default function CartPage() {
           {/* Item List Column */}
           <div className="lg:col-span-8 flex flex-col gap-4">
             {/* Free shipping banner */}
-            <div className="bg-[#f5f3ef] border border-stone-200 px-4 py-3 text-xs text-stone-700 flex items-center gap-2">
+            <div className="bg-canvas-muted border border-stone-200 px-4 py-3 text-xs text-stone-700 flex items-center gap-2">
               <Truck size={16} className="text-stone-950 shrink-0" />
               {remaining <= 0 ? (
                 <span>
-                  🎉 You qualify for <strong>Complimentary Domestic Shipping</strong>!
+                  Unlocked — this order ships with <strong>complimentary domestic delivery</strong>.
                 </span>
               ) : (
                 <span>
@@ -73,7 +76,7 @@ export default function CartPage() {
             <div className="pt-4 flex items-center justify-between">
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-stone-600 hover:text-stone-950 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-stone-600 hover:text-stone-950 transition-colors duration-150"
               >
                 <ArrowLeft size={13} />
                 Continue Shopping
@@ -83,7 +86,7 @@ export default function CartPage() {
 
           {/* Sticky Summary Column */}
           <div className="lg:col-span-4">
-            <div className="sticky top-24 border border-stone-200 bg-white p-6 shadow-xs flex flex-col gap-4">
+            <div className="sticky top-[calc(var(--nm-header-h)+1.5rem)] border border-stone-200 bg-white p-6 shadow-xs flex flex-col gap-4">
               <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-stone-950">
                 Order Breakdown
               </h2>
@@ -101,9 +104,9 @@ export default function CartPage() {
               </div>
 
               <div className="border-t border-stone-200/60 pt-4 text-[11px] text-stone-500 flex flex-col gap-1.5">
-                <p>✓ All domestic taxes included</p>
-                <p>✓ Secure bank transfer, e-wallet, & COD</p>
-                <p>✓ 14-day exchange guarantee</p>
+                <p>All domestic taxes included</p>
+                <p>Bank transfer, e-wallet and cash on delivery</p>
+                <p>14-day exchange window</p>
               </div>
             </div>
           </div>

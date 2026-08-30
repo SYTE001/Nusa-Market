@@ -15,11 +15,12 @@ export function ProductCardSkeleton() {
   return (
     <div className="flex flex-col gap-2.5">
       <Skeleton className="aspect-[4/5] w-full" />
-      <div className="flex flex-col gap-1.5 pt-1">
-        <Skeleton className="h-2.5 w-1/4" />
-        <Skeleton className="h-3.5 w-3/4" />
-        <Skeleton className="h-3 w-1/3" />
-        <Skeleton className="h-3.5 w-1/2" />
+      {/* Three bars, matching the real card's brand row, name and price - a
+          taller skeleton would make the grid jump as products arrive. */}
+      <div className="flex flex-col gap-1 pt-0.5">
+        <Skeleton className="h-3 w-2/5" />
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-1/3" />
       </div>
     </div>
   );

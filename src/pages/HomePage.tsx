@@ -3,43 +3,37 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import type { Product } from '../types';
 import { getNewArrivals, getBestSellers } from '../services/productService';
+import { products } from '../data/products';
 import { ProductGrid } from '../components/product/ProductGrid';
+import { NewsletterForm } from '../components/sections/NewsletterForm';
 import { Button } from '../components/ui/Button';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-const CATEGORY_TILES = [
-  {
-    name: 'T-Shirts',
-    count: '4 Styles',
-    img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Hoodies',
-    count: '3 Styles',
-    img: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Pants',
-    count: '4 Styles',
-    img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Jackets',
-    count: '4 Styles',
-    img: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Accessories',
-    count: '4 Styles',
-    img: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Bags',
-    count: '4 Styles',
-    img: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
-  },
-];
+const CATEGORY_IMAGES: Record<string, string> = {
+  'T-Shirts': 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
+  // Not the hero photograph: the two sit one above the other on this page.
+  Hoodies: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80',
+  Pants: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80',
+  Jackets: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=600&q=80',
+  Accessories: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=600&q=80',
+  Bags: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
+};
+
+/**
+ * Style counts are derived from the catalog so a tile can never advertise a
+ * number the shop does not actually return.
+ */
+const CATEGORY_TILES = Object.entries(CATEGORY_IMAGES).map(([name, img]) => ({
+  name,
+  img,
+  count: products.filter((p) => p.category === name).length,
+}));
+
+const CATALOG_SIZE = products.length;
 
 export default function HomePage() {
+  useDocumentTitle('NusaMarket — Modern Storefront for Local Brands');
+
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +50,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col gap-14 sm:gap-20">
       {/* Editorial Hero */}
-      <section className="relative bg-[#f5f3ef] border-b border-stone-200/80">
+      <section className="relative bg-canvas-muted border-b border-stone-200/80">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Headline Copy */}
           <div className="lg:col-span-7 flex flex-col gap-5 lg:pr-4">
@@ -75,22 +69,18 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-              <Link to="/shop">
-                <Button size="md" className="w-full sm:w-auto">
-                  Shop Collection
-                </Button>
-              </Link>
-              <Link to="/shop?sort=newest">
-                <Button size="md" variant="secondary" className="w-full sm:w-auto">
-                  Explore New Arrivals
-                </Button>
-              </Link>
+              <Button to="/shop" size="md" className="w-full sm:w-auto">
+                Shop Collection
+              </Button>
+              <Button to="/shop?sort=newest" size="md" variant="secondary" className="w-full sm:w-auto">
+                Explore New Arrivals
+              </Button>
             </div>
 
             {/* Quick metrics ticker */}
             <div className="grid grid-cols-3 gap-4 pt-5 border-t border-stone-300/60 text-stone-900 mt-1">
               <div>
-                <p className="text-base sm:text-lg font-bold tracking-tight">24+</p>
+                <p className="text-base sm:text-lg font-bold tracking-tight">{CATALOG_SIZE}</p>
                 <p className="text-[10px] text-stone-500 uppercase tracking-wider">Curated Styles</p>
               </div>
               <div>
@@ -106,10 +96,16 @@ export default function HomePage() {
 
           {/* Hero Visual Moment with controlled portrait scale */}
           <div className="lg:col-span-5 relative">
-            <div className="relative aspect-[4/5] sm:aspect-[4/4.5] lg:aspect-[4/5] max-h-[460px] mx-auto overflow-hidden bg-stone-200 shadow-sm border border-stone-300/60">
+            {/* One ratio, capped by width. `max-h` on an aspect box caps the
+                height while the width still fills the column, so the declared
+                4:5 quietly flattened towards square on wide screens. */}
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-[368px] overflow-hidden bg-stone-200 shadow-sm border border-stone-300/60">
               <img
                 src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=85"
-                alt="NusaMarket Editorial Lookbook"
+                alt="Model wearing the heavyweight boxy fleece from the NusaMarket lookbook"
+                width={900}
+                height={1125}
+                fetchPriority="high"
                 className="h-full w-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -120,7 +116,7 @@ export default function HomePage() {
                 </div>
                 <Link
                   to="/product/lokal-heavyweight-hoodie"
-                  className="bg-white/95 backdrop-blur-xs text-stone-950 p-2 text-xs hover:bg-white transition-colors"
+                  className="bg-white/95 backdrop-blur-xs text-stone-950 p-2 text-xs hover:bg-white transition-colors duration-150"
                   aria-label="View featured hoodie"
                 >
                   <ArrowRight size={15} />
@@ -132,10 +128,13 @@ export default function HomePage() {
       </section>
 
       {/* Featured Categories Discovery with compact, refined editorial proportions */}
-      <section id="collections" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section
+        id="collections"
+        className="mx-auto max-w-7xl scroll-mt-[calc(var(--nm-header-h)+1.5rem)] px-4 sm:px-6 lg:px-8"
+      >
         <div className="mb-6 flex items-baseline justify-between border-b border-stone-200/80 pb-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Curated Categories
             </span>
             <h2 className="text-lg sm:text-2xl font-bold text-stone-950 tracking-tight mt-0.5">
@@ -144,7 +143,7 @@ export default function HomePage() {
           </div>
           <Link
             to="/shop"
-            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors flex items-center gap-1"
+            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors duration-150 flex items-center gap-1"
           >
             <span>All Silhouettes</span>
             <ArrowRight size={13} />
@@ -156,19 +155,23 @@ export default function HomePage() {
             <Link
               key={cat.name}
               to={`/shop?category=${encodeURIComponent(cat.name)}`}
-              className="group relative flex flex-col overflow-hidden bg-white border border-stone-200/80 transition-all duration-300 hover:border-stone-900 shadow-2xs"
+              className="group relative flex flex-col overflow-hidden bg-white border border-stone-200/80 transition-colors duration-200 hover:border-stone-900 shadow-2xs"
             >
               <div className="aspect-[4/3] overflow-hidden bg-stone-100">
                 <img
                   src={cat.img}
                   alt={cat.name}
+                  width={600}
+                  height={450}
                   loading="lazy"
                   className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
                 />
               </div>
               <div className="p-2.5 bg-white flex flex-col">
                 <span className="text-xs font-bold text-stone-950 tracking-tight">{cat.name}</span>
-                <span className="text-[10px] text-stone-400 font-medium">{cat.count}</span>
+                <span className="text-[10px] text-stone-500 font-medium">
+                  {cat.count} {cat.count === 1 ? 'Style' : 'Styles'}
+                </span>
               </div>
             </Link>
           ))}
@@ -179,7 +182,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-baseline justify-between border-b border-stone-200/80 pb-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Fresh Drops
             </span>
             <h2 className="text-lg sm:text-2xl font-bold text-stone-950 tracking-tight mt-0.5">
@@ -188,7 +191,7 @@ export default function HomePage() {
           </div>
           <Link
             to="/shop?sort=newest"
-            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors flex items-center gap-1"
+            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors duration-150 flex items-center gap-1"
           >
             <span>View Full Drop</span>
             <ArrowRight size={13} />
@@ -205,7 +208,10 @@ export default function HomePage() {
           <div className="lg:col-span-7 relative h-60 sm:h-72 lg:h-full overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=1100&q=85"
-              alt="Archival Series Campaign"
+              alt="Archival Series campaign photograph"
+              width={1100}
+              height={734}
+              loading="lazy"
               className="h-full w-full object-cover object-center brightness-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-stone-950 via-stone-950/40 to-transparent" />
@@ -223,15 +229,14 @@ export default function HomePage() {
               Every garment in our curation is produced in low-volume runs across West Java and Central Java. We prioritize premium dense weaves, durable double-needle stitching, and custom hardware.
             </p>
             <div className="pt-1">
-              <Link to="/shop">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="border-white text-white hover:bg-white hover:text-stone-950 text-[11px]"
-                >
-                  Explore The Archive
-                </Button>
-              </Link>
+              <Button
+                to="/shop"
+                size="sm"
+                variant="secondary"
+                className="border-white bg-transparent text-white hover:bg-white hover:text-stone-950 text-[11px] focus-visible:ring-white focus-visible:ring-offset-stone-950"
+              >
+                Explore The Archive
+              </Button>
             </div>
           </div>
         </div>
@@ -241,7 +246,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-baseline justify-between border-b border-stone-200/80 pb-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Community Favorites
             </span>
             <h2 className="text-lg sm:text-2xl font-bold text-stone-950 tracking-tight mt-0.5">
@@ -250,7 +255,7 @@ export default function HomePage() {
           </div>
           <Link
             to="/shop"
-            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors flex items-center gap-1"
+            className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors duration-150 flex items-center gap-1"
           >
             <span>View All Bestsellers</span>
             <ArrowRight size={13} />
@@ -261,7 +266,10 @@ export default function HomePage() {
       </section>
 
       {/* Brand Story / Ethos Section */}
-      <section id="about" className="bg-[#f5f3ef] border-y border-stone-200/80 py-16 px-4 sm:px-6 lg:px-8 scroll-mt-20">
+      <section
+        id="about"
+        className="scroll-mt-[calc(var(--nm-header-h)+1.5rem)] border-y border-stone-200/80 bg-canvas-muted px-4 py-16 sm:px-6 lg:px-8"
+      >
         <div className="mx-auto max-w-3xl text-center flex flex-col gap-5">
           <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-500">
             About NusaMarket
@@ -285,7 +293,7 @@ export default function HomePage() {
       {/* Editorial Dispatch / Newsletter */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-6">
         <div className="border border-stone-300 bg-white p-7 sm:p-12 text-center max-w-2xl mx-auto flex flex-col items-center gap-3.5 shadow-2xs">
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             Editorial Dispatch
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-stone-950 tracking-tight">
@@ -294,21 +302,7 @@ export default function HomePage() {
           <p className="text-xs sm:text-sm text-stone-500 leading-relaxed max-w-md">
             Receive private release dates, fabric development stories, and seasonal lookbooks directly in your inbox.
           </p>
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mt-1 flex w-full max-w-md flex-col sm:flex-row gap-2"
-          >
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 h-10 border border-stone-300 bg-[#fdfcfb] px-3 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-950"
-              aria-label="Email address for subscription"
-              required
-            />
-            <Button size="sm" type="submit" className="sm:w-auto shrink-0 h-10 px-5 text-[11px]">
-              Join Dispatch
-            </Button>
-          </form>
+          <NewsletterForm layout="inline" className="mt-1 max-w-md" />
         </div>
       </section>
     </div>

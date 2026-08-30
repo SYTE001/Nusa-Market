@@ -1,12 +1,25 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Editorial stone palette, one accent (ink), single shared easing curve.
+   --------------------------------------------------------------------------- */
 @theme {
-  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --color-canvas: #fcfbfa;
-  --color-canvas-subtle: #f5f4f0;
-  --color-ink: #141413;
-  --color-ink-muted: #6e6d68;
-  --color-border-subtle: #eae8e3;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --color-canvas: #faf9f7;
+  --color-canvas-raised: #fdfcfb;
+  /* Sand tone for editorial bands (hero, brand story, promo banners) */
+  --color-canvas-muted: #f5f3ef;
+  --color-ink: #18181b;
+
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  /* Live height of the fixed header (announcement bar + nav row).
+     Measured by Navbar with a ResizeObserver; this is the pre-hydration fallback. */
+  --nm-header-h: 84px;
 }
 
 *, *::before, *::after {
@@ -16,26 +29,29 @@
 html {
   scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
+  /* Reserve the scrollbar gutter so locking body scroll for a drawer,
+     the search modal or the mobile menu never shifts the layout. */
+  scrollbar-gutter: stable;
 }
 
 body {
-  font-family: var(--font-family-sans);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #18181b;
-  background-color: #faf9f7;
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
   letter-spacing: -0.01em;
 }
 
 /* Editorial selection */
 ::selection {
-  background-color: #18181b;
-  color: #faf9f7;
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
 }
 
 /* Crisp focus rings for interactive elements without explicit borders */
 :focus-visible:not(input):not(textarea):not(select) {
-  outline: 2px solid #18181b;
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -46,7 +62,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #faf9f7;
+  background: var(--color-canvas);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -57,20 +73,37 @@ body {
   background: #a8a29e;
 }
 
-/* Smooth Page & Component Transitions */
+/* Horizontal rails (category pills, gallery thumbnails) scroll without chrome */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion language
+   Entrances use keyframes below; state changes use Tailwind transitions on a
+   three-step scale: 150ms micro-interaction, 200ms overlay/chrome,
+   500ms editorial image reveal. Nothing cinematic, nothing blocking.
+   --------------------------------------------------------------------------- */
+/* Page entrance is opacity only, deliberately: a transform on the route wrapper
+   would make it the containing block for every `position: fixed` descendant
+   (the mobile purchase bar, above all) and pin it to the page instead of the
+   viewport. Rises belong to elements that own no fixed children. */
 @keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .animate-page-enter {
-  animation: pageEnter 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageEnter 200ms var(--ease-editorial) forwards;
 }
 
 @keyframes dropdownEnter {
@@ -85,7 +118,23 @@ body {
 }
 
 .animate-dropdown-enter {
-  animation: dropdownEnter 140ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dropdownEnter 150ms var(--ease-editorial) forwards;
+}
+
+/* Search content: soft rise-in, staggerable via animation-delay */
+@keyframes fadeRise {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-rise {
+  animation: fadeRise 200ms var(--ease-editorial) both;
 }
 
 /* Heart pop animation for wishlist */
@@ -102,15 +151,54 @@ body {
 }
 
 .animate-heart-pop {
-  animation: heartPop 220ms ease-out forwards;
+  animation: heartPop 200ms ease-out forwards;
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Loading feedback is information, not decoration: a spinner frozen on one
+     frame and a skeleton that never pulses both read as a hung page. They keep
+     running - calmer, and never faster than the sweep they replaced. */
+  .animate-spin {
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .animate-pulse {
+    animation-duration: 2.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Print: the order receipt is the only page meant for paper.
+   --------------------------------------------------------------------------- */
+@media print {
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  main {
+    padding-top: 0 !important;
+  }
+
+  * {
+    box-shadow: none !important;
   }
 }

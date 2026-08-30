@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ShieldCheck, Truck, CreditCard } from 'lucide-react';
+import { Info, Truck, CreditCard } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
-import { setCurrentOrder } from '../stores/orderStore';
+import { useOrderStore } from '../stores/orderStore';
 import { CartItem } from '../components/cart/CartItem';
 import { CartSummary } from '../components/cart/CartSummary';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Dropdown } from '../components/ui/Dropdown';
 import { EmptyState } from '../components/ui/EmptyState';
-import { generateOrderId, SHIPPING_COSTS, formatRupiah } from '../utils';
-import type { CheckoutFormData, ShippingMethod } from '../types';
+import { generateOrderId, SHIPPING_COSTS, shippingCostFor, formatRupiah } from '../utils';
+import type { CheckoutFormData } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const INDONESIAN_PROVINCES = [
   'Aceh', 'Bali', 'Banten', 'Bengkulu', 'D.I. Yogyakarta', 'D.K.I. Jakarta',
@@ -21,6 +22,7 @@ const INDONESIAN_PROVINCES = [
   'Kalimantan Selatan', 'Kalimantan Tengah', 'Kalimantan Timur', 'Kalimantan Utara',
   'Kepulauan Bangka Belitung', 'Kepulauan Riau', 'Lampung', 'Maluku', 'Maluku Utara',
   'Nusa Tenggara Barat', 'Nusa Tenggara Timur', 'Papua', 'Papua Barat',
+  'Papua Barat Daya', 'Papua Pegunungan', 'Papua Selatan', 'Papua Tengah',
   'Riau', 'Sulawesi Barat', 'Sulawesi Selatan', 'Sulawesi Tengah',
   'Sulawesi Tenggara', 'Sulawesi Utara', 'Sumatera Barat', 'Sumatera Selatan',
   'Sumatera Utara',
@@ -28,40 +30,48 @@ const INDONESIAN_PROVINCES = [
 
 const schema = z.object({
   name: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
   phone: z.string().min(1, 'Contact phone number is required'),
   address: z.string().min(1, 'Street address is required'),
   city: z.string().min(1, 'City/Regency is required'),
   province: z.string().min(1, 'Please select your province'),
-  postalCode: z.string().regex(/^\d+$/, 'Postal code must be numeric').min(5, 'Postal code must be at least 5 digits'),
-  shippingMethod: z.enum(['regular', 'express']).refine((v) => v !== undefined, { message: 'Select a shipping method' }),
-  paymentMethod: z.enum(['bank-transfer', 'e-wallet', 'cod']).refine((v) => v !== undefined, { message: 'Select a payment method' }),
+  postalCode: z.string().regex(/^\d{5}$/, 'Postal code must be exactly 5 digits'),
+  shippingMethod: z.enum(['regular', 'express']),
+  paymentMethod: z.enum(['bank-transfer', 'e-wallet', 'cod']),
 });
 
 export default function CheckoutPage() {
+  useDocumentTitle('Checkout — NusaMarket');
+
   const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore((s) => s.subtotal());
+  const totalItems = useCartStore((s) => s.totalItems());
   const clearCart = useCartStore((s) => s.clearCart);
+  const setCurrentOrder = useOrderStore((s) => s.setCurrentOrder);
   const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
+    control,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
+      province: '',
       shippingMethod: 'regular',
       paymentMethod: 'bank-transfer',
     },
   });
 
-  const shippingMethod = watch('shippingMethod') as ShippingMethod;
-  const paymentMethod = watch('paymentMethod');
-  const shippingCost = SHIPPING_COSTS[shippingMethod] ?? SHIPPING_COSTS.regular;
+  // useWatch subscribes to a single field through `control` instead of
+  // re-rendering the page on every keystroke in every input, the way the
+  // form-wide `watch()` does.
+  const shippingMethod = useWatch({ control, name: 'shippingMethod' });
+  const paymentMethod = useWatch({ control, name: 'paymentMethod' });
+  const shippingCost = shippingCostFor(shippingMethod, subtotal);
+  const shippingIsFree = shippingCost === 0;
   const total = subtotal + shippingCost;
 
   async function onSubmit(data: CheckoutFormData) {
@@ -91,7 +101,7 @@ export default function CheckoutPage() {
 
     setCurrentOrder(order);
     clearCart();
-    navigate('/order/success');
+    navigate('/order/success', { replace: true });
   }
 
   if (items.length === 0) {
@@ -110,8 +120,8 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       {/* Page Title */}
       <div className="mb-8 border-b border-stone-200/80 pb-4">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
-          Secure Transaction
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+          Order Placement
         </span>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950 mt-1">
           Checkout & Dispatch
@@ -125,7 +135,7 @@ export default function CheckoutPage() {
             {/* Section 01: Contact */}
             <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-400">01</span>
+                <span className="text-xs font-bold font-mono text-stone-500">01</span>
                 <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
                   Client & Contact Information
                 </h2>
@@ -161,7 +171,7 @@ export default function CheckoutPage() {
             {/* Section 02: Shipping Address */}
             <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-400">02</span>
+                <span className="text-xs font-bold font-mono text-stone-500">02</span>
                 <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
                   Delivery Destination
                 </h2>
@@ -182,17 +192,24 @@ export default function CheckoutPage() {
                   autoComplete="address-level2"
                   placeholder="Jakarta Selatan"
                 />
-                <Dropdown
-                  id="province"
-                  label="Province"
-                  size="md"
-                  placeholder="Select province..."
-                  options={INDONESIAN_PROVINCES}
-                  value={watch('province') || ''}
-                  onChange={(val) => {
-                    setValue('province', val, { shouldValidate: true });
-                  }}
-                  error={errors.province?.message}
+                {/* Controlled through RHF so the field owns a ref and an invalid
+                    submit can move focus to it like any other input. */}
+                <Controller
+                  control={control}
+                  name="province"
+                  render={({ field, fieldState }) => (
+                    <Dropdown
+                      id="province"
+                      label="Province"
+                      size="md"
+                      placeholder="Select province..."
+                      options={INDONESIAN_PROVINCES}
+                      value={field.value}
+                      onChange={field.onChange}
+                      ref={field.ref}
+                      error={fieldState.error?.message}
+                    />
+                  )}
                 />
                 <Input
                   label="Postal Code"
@@ -208,16 +225,17 @@ export default function CheckoutPage() {
             {/* Section 03: Shipping Method */}
             <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-400">03</span>
+                <span className="text-xs font-bold font-mono text-stone-500">03</span>
                 <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
                   Shipping Courier
                 </h2>
               </div>
-              <div className="flex flex-col gap-3">
+              <fieldset className="flex flex-col gap-3">
+                <legend className="sr-only">Shipping courier</legend>
                 {(['regular', 'express'] as const).map((method) => (
                   <label
                     key={method}
-                    className={`flex items-center justify-between p-4 border transition-all cursor-pointer ${
+                    className={`flex items-center justify-between p-4 border transition-all duration-150 cursor-pointer ${
                       shippingMethod === method
                         ? 'border-stone-950 bg-stone-50/70 shadow-xs'
                         : 'border-stone-200/80 bg-white hover:border-stone-400'
@@ -242,26 +260,36 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-stone-950">
-                      {formatRupiah(SHIPPING_COSTS[method])}
+                    <span className="shrink-0 text-right text-xs font-bold tabular-nums text-stone-950 sm:text-sm">
+                      {shippingIsFree ? (
+                        <>
+                          <s className="block text-[11px] font-medium text-stone-500">
+                            {formatRupiah(SHIPPING_COSTS[method])}
+                          </s>
+                          <span className="text-emerald-700">Complimentary</span>
+                        </>
+                      ) : (
+                        formatRupiah(SHIPPING_COSTS[method])
+                      )}
                     </span>
                   </label>
                 ))}
                 {errors.shippingMethod && (
                   <p className="text-[11px] font-medium text-red-600">{errors.shippingMethod.message}</p>
                 )}
-              </div>
+              </fieldset>
             </section>
 
             {/* Section 04: Payment Method */}
             <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-400">04</span>
+                <span className="text-xs font-bold font-mono text-stone-500">04</span>
                 <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
                   Payment Gateway
                 </h2>
               </div>
-              <div className="flex flex-col gap-3">
+              <fieldset className="flex flex-col gap-3">
+                <legend className="sr-only">Payment method</legend>
                 {[
                   {
                     value: 'bank-transfer',
@@ -281,7 +309,7 @@ export default function CheckoutPage() {
                 ].map((pm) => (
                   <label
                     key={pm.value}
-                    className={`flex items-center gap-3.5 p-4 border transition-all cursor-pointer ${
+                    className={`flex items-center gap-3.5 p-4 border transition-all duration-150 cursor-pointer ${
                       paymentMethod === pm.value
                         ? 'border-stone-950 bg-stone-50/70 shadow-xs'
                         : 'border-stone-200/80 bg-white hover:border-stone-400'
@@ -305,15 +333,15 @@ export default function CheckoutPage() {
                 {errors.paymentMethod && (
                   <p className="text-[11px] font-medium text-red-600">{errors.paymentMethod.message}</p>
                 )}
-              </div>
+              </fieldset>
             </section>
           </div>
 
           {/* Right Column: Sticky Summary */}
           <div className="lg:col-span-5">
-            <div className="sticky top-24 border border-stone-200 bg-white p-6 sm:p-7 shadow-xs flex flex-col gap-5">
+            <div className="sticky top-[calc(var(--nm-header-h)+1.5rem)] border border-stone-200 bg-white p-6 sm:p-7 shadow-xs flex flex-col gap-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-stone-950 border-b border-stone-100 pb-3">
-                Order Review ({items.reduce((acc, i) => acc + i.quantity, 0)})
+                Order Review ({totalItems})
               </h2>
 
               <div className="divide-y divide-stone-100 max-h-72 overflow-y-auto pr-1">
@@ -337,9 +365,11 @@ export default function CheckoutPage() {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-[11px] text-stone-500 pt-2 border-t border-stone-100">
-                <ShieldCheck size={14} className="text-stone-800" />
-                <span>256-bit Encrypted Checkout</span>
+              <div className="flex items-start gap-2 border-t border-stone-100 pt-3 text-[11px] leading-relaxed text-stone-500">
+                <Info size={13} className="mt-0.5 shrink-0 text-stone-700" aria-hidden="true" />
+                <span>
+                  Demonstration checkout — no payment is processed and no data leaves your browser.
+                </span>
               </div>
             </div>
           </div>

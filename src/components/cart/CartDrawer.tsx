@@ -7,7 +7,7 @@ import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { useCartStore } from '../../stores/cartStore';
 import { useUIStore } from '../../stores/uiStore';
-import { formatRupiah } from '../../utils';
+import { formatRupiah, FREE_SHIPPING_THRESHOLD } from '../../utils';
 
 export function CartDrawer() {
   const { cartDrawerOpen, closeCartDrawer } = useUIStore();
@@ -25,7 +25,6 @@ export function CartDrawer() {
     navigate('/checkout');
   }
 
-  const FREE_SHIPPING_THRESHOLD = 500000;
   const progress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
   const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
 
@@ -60,7 +59,10 @@ export function CartDrawer() {
             </div>
             <div className="h-1.5 w-full bg-stone-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-stone-950 transition-all duration-300 rounded-full"
+                /* Only the width ever changes here, and it belongs on the same
+                   500ms editorial curve as the other reveals rather than on a
+                   duration of its own. */
+                className="h-full rounded-full bg-stone-950 transition-[width] duration-500 ease-editorial"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -77,7 +79,7 @@ export function CartDrawer() {
           </div>
 
           {/* Bottom Action Summary */}
-          <div className="border-t border-stone-200/80 bg-[#fdfcfb] px-6 py-5 flex flex-col gap-3 shadow-md">
+          <div className="border-t border-stone-200/80 bg-canvas-raised px-6 py-5 flex flex-col gap-3 shadow-md">
             <CartSummary subtotal={subtotal} />
             <Button fullWidth size="lg" onClick={goToCheckout}>
               Checkout — {formatRupiah(subtotal)}

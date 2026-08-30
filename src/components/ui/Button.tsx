@@ -1,14 +1,33 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type SharedProps = {
   variant?: Variant;
   size?: Size;
-  loading?: boolean;
   fullWidth?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 };
+
+type ButtonElementProps = SharedProps &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'> & {
+    to?: never;
+    loading?: boolean;
+  };
+
+type LinkElementProps = SharedProps &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'children' | 'href'> & {
+    /**
+     * Renders the button as a router link. Navigation buttons must use this
+     * rather than being wrapped in a <Link>, which would nest a <button>
+     * inside an <a> - invalid interactive content, and a double tab stop.
+     */
+    to: string;
+    loading?: never;
+  };
 
 const variantClasses: Record<Variant, string> = {
   primary:
@@ -27,31 +46,37 @@ const sizeClasses: Record<Size, string> = {
   lg: 'h-12 px-7 text-xs gap-2.5 tracking-[0.1em]',
 };
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  fullWidth = false,
-  className = '',
-  children,
-  disabled,
-  ...props
-}: ButtonProps) {
+function composeClasses({ variant = 'primary', size = 'md', fullWidth = false, className = '' }: SharedProps) {
+  return [
+    'inline-flex items-center justify-center font-semibold uppercase transition-all duration-150 select-none cursor-pointer',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2',
+    'disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.99]',
+    variantClasses[variant],
+    sizeClasses[size],
+    fullWidth ? 'w-full' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+export function Button(props: ButtonElementProps | LinkElementProps) {
+  if (props.to !== undefined) {
+    const { to, variant, size, fullWidth, className, children, ...rest } = props;
+    return (
+      <Link to={to} className={composeClasses({ variant, size, fullWidth, className })} {...rest}>
+        {children}
+      </Link>
+    );
+  }
+
+  const { variant, size, fullWidth, className, children, loading = false, disabled, ...rest } = props;
   return (
     <button
-      {...props}
+      {...rest}
       disabled={disabled || loading}
-      className={[
-        'inline-flex items-center justify-center font-semibold uppercase transition-all duration-150 select-none cursor-pointer',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2',
-        'disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.99]',
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth ? 'w-full' : '',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      aria-busy={loading || undefined}
+      className={composeClasses({ variant, size, fullWidth, className })}
     >
       {loading && (
         <svg

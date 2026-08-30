@@ -1,11 +1,13 @@
 {
-  "name": "nusa-market-app",
+  "name": "nusamarket",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A premium responsive ecommerce storefront concept built for modern Indonesian local brands.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "lint": "oxlint",
     "preview": "vite preview"
   },

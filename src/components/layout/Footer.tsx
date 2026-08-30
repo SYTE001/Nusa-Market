@@ -1,23 +1,12 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
+import { NewsletterForm } from '../sections/NewsletterForm';
 
 export function Footer() {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  function handleNewsletter(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email || !email.includes('@')) return;
-    setSubscribed(true);
-    setTimeout(() => {
-      setEmail('');
-      setSubscribed(false);
-    }, 4000);
-  }
-
   return (
-    <footer className="mt-auto border-t border-stone-200/80 bg-[#fbfaf8] text-stone-900">
+    <footer
+      data-print-hide
+      className="mt-auto border-t border-stone-200/80 bg-canvas-raised text-stone-900"
+    >
       {/* Brand value pillars */}
       <div className="border-b border-stone-200/60">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
@@ -61,7 +50,7 @@ export function Footer() {
             <p className="text-xs text-stone-500 leading-relaxed max-w-sm">
               An editorial commerce platform dedicated to championing contemporary Indonesian craftsmanship, streetwear, and elevated everyday essentials.
             </p>
-            <div className="pt-2 flex items-center gap-4 text-xs text-stone-400">
+            <div className="pt-2 flex items-center gap-4 text-xs text-stone-500">
               <span>Jakarta</span>
               <span>·</span>
               <span>Bandung</span>
@@ -89,7 +78,7 @@ export function Footer() {
                 <li key={item.cat}>
                   <Link
                     to={`/shop?category=${encodeURIComponent(item.cat)}`}
-                    className="text-xs text-stone-600 hover:text-stone-950 transition-colors"
+                    className="text-xs text-stone-600 hover:text-stone-950 transition-colors duration-150"
                   >
                     {item.label}
                   </Link>
@@ -98,27 +87,29 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Discover - every entry resolves to a route that exists */}
           <div>
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-950 mb-4">
-              Client Service
+              Discover
             </h3>
-            <ul className="flex flex-col gap-2.5 text-xs text-stone-600">
-              <li>
-                <span className="hover:text-stone-950 cursor-pointer">Shipping & Dispatch</span>
-              </li>
-              <li>
-                <span className="hover:text-stone-950 cursor-pointer">Size & Fit Guidance</span>
-              </li>
-              <li>
-                <span className="hover:text-stone-950 cursor-pointer">Artisan Directory</span>
-              </li>
-              <li>
-                <span className="hover:text-stone-950 cursor-pointer">Returns & Exchanges</span>
-              </li>
-              <li>
-                <span className="hover:text-stone-950 cursor-pointer">Wholesale Inquiry</span>
-              </li>
+            <ul className="flex flex-col gap-2.5">
+              {[
+                { label: 'New Arrivals', to: '/shop?sort=newest' },
+                { label: 'Highest Rated', to: '/shop?sort=rating' },
+                { label: 'Rp 100.000 – Rp 250.000', to: '/shop?price=100-250' },
+                { label: 'Collections', to: '/#collections' },
+                { label: 'Our Story', to: '/#about' },
+                { label: 'Saved Pieces', to: '/wishlist' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.to}
+                    className="text-xs text-stone-600 hover:text-stone-950 transition-colors duration-150"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -130,35 +121,7 @@ export function Footer() {
             <p className="text-xs text-stone-500 leading-relaxed">
               Early release access, archival restocks, and brand documentaries.
             </p>
-            <form onSubmit={handleNewsletter} className="mt-1 flex flex-col gap-2">
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="w-full h-10 border border-stone-300 bg-white px-3 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-950"
-                  aria-label="Email for editorial updates"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="h-9 w-full bg-stone-950 text-stone-50 text-[11px] font-semibold uppercase tracking-[0.14em] hover:bg-stone-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                {subscribed ? (
-                  <>
-                    <Check size={14} className="text-emerald-400" />
-                    Subscribed
-                  </>
-                ) : (
-                  <>
-                    Subscribe
-                    <ArrowRight size={13} />
-                  </>
-                )}
-              </button>
-            </form>
+            <NewsletterForm className="mt-1" />
           </div>
         </div>
 
@@ -167,11 +130,9 @@ export function Footer() {
           <p className="text-[11px] tracking-wide">
             © {new Date().getFullYear()} NusaMarket. Built for contemporary Indonesian commerce.
           </p>
-          <div className="flex items-center gap-6 text-[11px] uppercase tracking-wider text-stone-400">
-            <span className="hover:text-stone-900 cursor-pointer">Privacy</span>
-            <span className="hover:text-stone-900 cursor-pointer">Terms of Service</span>
-            <span className="hover:text-stone-900 cursor-pointer">Nusantara 🇮🇩</span>
-          </div>
+          <p className="text-[11px] uppercase tracking-wider text-stone-500">
+            Portfolio demonstration · Nusantara 🇮🇩
+          </p>
         </div>
       </div>
     </footer>

@@ -1,3 +1,5 @@
+import type { ShippingMethod } from '../types';
+
 /**
  * Format a price in Indonesian Rupiah
  */
@@ -40,7 +42,33 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Shipping cost by method (IDR)
  */
-export const SHIPPING_COSTS: Record<'regular' | 'express', number> = {
+export const SHIPPING_COSTS: Record<ShippingMethod, number> = {
   regular: 25000,
   express: 55000,
 };
+
+/** Subtotal (IDR) at which domestic shipping is complimentary. */
+export const FREE_SHIPPING_THRESHOLD = 500000;
+
+/**
+ * Single source of truth for what shipping actually costs. Every surface that
+ * promises complimentary shipping above the threshold - announcement bar, cart
+ * drawer progress, cart banner - resolves through here, so the promise and the
+ * charged total can never drift apart.
+ */
+export function shippingCostFor(method: ShippingMethod, subtotal: number): number {
+  if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+  return SHIPPING_COSTS[method] ?? SHIPPING_COSTS.regular;
+}
+
+/**
+ * The catalog stores a gallery-sized 900px rendition of every image and
+ * Unsplash serves whatever width the URL asks for, so a 150px thumbnail asks
+ * for a thumbnail and a 300px card asks for a card. `width` is the CSS width
+ * the image occupies; the request doubles it for high-density screens and never
+ * exceeds the stored rendition. URLs without a `w=` parameter are returned
+ * untouched, so local assets pass through unharmed.
+ */
+export function imageSource(src: string, width: number): string {
+  return src.replace(/([?&]w=)\d+/, `$1${Math.min(900, width * 2)}`);
+}

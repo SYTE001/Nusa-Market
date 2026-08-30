@@ -7,11 +7,13 @@ import { formatRupiah, discountPercent } from '../utils';
 import { useCartStore } from '../stores/cartStore';
 import { useWishlistStore } from '../stores/wishlistStore';
 import { useUIStore } from '../stores/uiStore';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Rating } from '../components/ui/Rating';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { QuantitySelector } from '../components/ui/QuantitySelector';
 import { ProductGrid } from '../components/product/ProductGrid';
+import { ProductReviews } from '../components/product/ProductReviews';
 import { ProductDetailSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 
@@ -29,6 +31,10 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
 
+  // Named before the fetch settles would announce a title for a product that
+  // may not exist, so the site title stands in until the catalog answers.
+  useDocumentTitle(product ? `${product.name} — NusaMarket` : 'NusaMarket — Modern Storefront for Local Brands');
+
   const addItem = useCartStore((s) => s.addItem);
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
   const isWishlisted = useWishlistStore((s) => s.isWishlisted(product?.id ?? ''));
@@ -42,14 +48,16 @@ export default function ProductDetailPage() {
     setTimeout(() => setWishlistPopping(false), 250);
   }
 
+  // Layout keys the routed page on its pathname, so opening a different slug -
+  // a related product, say - mounts this component fresh. The initial state is
+  // already the loading state, which leaves the effect nothing to reset.
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    setError(false);
-    setActiveImg(0);
-    setQty(1);
+    let active = true;
+
     getProductBySlug(slug)
       .then((p) => {
+        if (!active) return;
         if (!p) {
           setError(true);
           return;
@@ -59,9 +67,20 @@ export default function ProductDetailPage() {
         setSelectedColor(p.colors?.[0]);
         return getRelatedProducts(p);
       })
-      .then((rel) => rel && setRelated(rel))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .then((rel) => {
+        if (active && rel) setRelated(rel);
+      })
+      .catch(() => {
+        if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    // A slug change unmounts this page while the request may still be open.
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   function handleAddToCart() {
@@ -94,19 +113,28 @@ export default function ProductDetailPage() {
     <div className="pb-24 lg:pb-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Breadcrumbs */}
-        <div className="mb-6 flex items-center gap-2 text-xs text-stone-500">
-          <Link to="/" className="hover:text-stone-900 transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <Link to={`/shop?category=${encodeURIComponent(product.category)}`} className="hover:text-stone-900 transition-colors">
-            {product.category}
-          </Link>
-          <span>/</span>
-          <span className="text-stone-900 font-medium truncate max-w-[200px] sm:max-w-none">
-            {product.name}
-          </span>
-        </div>
+        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-stone-500">
+          <ol className="flex items-center gap-2">
+            <li>
+              <Link to="/" className="hover:text-stone-900 transition-colors duration-150">
+                Home
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link
+                to={`/shop?category=${encodeURIComponent(product.category)}`}
+                className="hover:text-stone-900 transition-colors duration-150"
+              >
+                {product.category}
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="truncate max-w-[200px] font-medium text-stone-900 sm:max-w-none">
+              {product.name}
+            </li>
+          </ol>
+        </nav>
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14">
           {/* Left: Gallery Column */}
@@ -118,12 +146,13 @@ export default function ProductDetailPage() {
                   <button
                     key={i}
                     onClick={() => setActiveImg(i)}
-                    className={`h-20 w-16 sm:h-24 sm:w-18 shrink-0 overflow-hidden border-2 bg-stone-100 transition-all cursor-pointer ${
+                    aria-pressed={activeImg === i}
+                    className={`h-20 w-16 shrink-0 cursor-pointer overflow-hidden border-2 bg-stone-100 transition-all duration-150 sm:h-24 sm:w-18 ${
                       activeImg === i
                         ? 'border-stone-950 shadow-xs'
                         : 'border-transparent opacity-70 hover:opacity-100'
                     }`}
-                    aria-label={`View perspective ${i + 1}`}
+                    aria-label={`View perspective ${i + 1} of ${product.images.length}`}
                   >
                     {imgErrors[i] ? (
                       <div className="h-full w-full bg-stone-200" />
@@ -131,6 +160,9 @@ export default function ProductDetailPage() {
                       <img
                         src={img}
                         alt=""
+                        width={72}
+                        height={96}
+                        loading="lazy"
                         className="h-full w-full object-cover object-center"
                         onError={() => setImgErrors((prev) => ({ ...prev, [i]: true }))}
                       />
@@ -143,14 +175,20 @@ export default function ProductDetailPage() {
             {/* Main Stage Image */}
             <div className="flex-1 overflow-hidden bg-stone-100 aspect-[3/4] relative shadow-xs">
               {imgErrors[activeImg] ? (
-                <div className="flex h-full w-full items-center justify-center bg-stone-200 text-stone-400 text-sm">
+                <div className="flex h-full w-full items-center justify-center bg-stone-200 text-stone-600 text-sm">
                   Image perspective unavailable
                 </div>
               ) : (
+                /* Keyed on the active index: swapping `src` changes no animatable
+                   property, so the transition this used to carry never ran. A
+                   remount lets the new perspective fade in. */
                 <img
+                  key={activeImg}
                   src={product.images[activeImg]}
-                  alt={product.name}
-                  className="h-full w-full object-cover object-center transition-all duration-300"
+                  alt={`${product.name} — perspective ${activeImg + 1}`}
+                  width={900}
+                  height={1200}
+                  className="animate-fade-rise h-full w-full object-cover object-center"
                   onError={() => setImgErrors((prev) => ({ ...prev, [activeImg]: true }))}
                 />
               )}
@@ -185,13 +223,14 @@ export default function ProductDetailPage() {
 
               {/* Price Row */}
               <div className="flex items-baseline gap-3 pt-2">
-                <span className="text-2xl sm:text-3xl font-bold text-stone-950 tracking-tight">
+                <span className="text-2xl sm:text-3xl font-bold tabular-nums text-stone-950 tracking-tight">
                   {formatRupiah(product.price)}
                 </span>
                 {product.originalPrice && (
-                  <span className="text-sm text-stone-400 line-through">
+                  <s className="text-sm tabular-nums text-stone-500">
+                    <span className="sr-only">Original price </span>
                     {formatRupiah(product.originalPrice)}
-                  </span>
+                  </s>
                 )}
               </div>
             </div>
@@ -215,14 +254,15 @@ export default function ProductDetailPage() {
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700">
                     Select Size
                   </p>
-                  <span className="text-xs text-stone-400 font-medium">Standard Fit</span>
+                  <span className="text-xs font-medium text-stone-500">Standard Fit</span>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Select size">
                   {product.sizes.map((s) => (
                     <button
                       key={s}
                       onClick={() => setSelectedSize(s)}
-                      className={`h-10 min-w-[42px] px-3.5 border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                      aria-pressed={selectedSize === s}
+                      className={`h-10 min-w-[42px] cursor-pointer border px-3.5 text-xs font-semibold uppercase tracking-wider transition-all duration-150 ${
                         selectedSize === s
                           ? 'border-stone-950 bg-stone-950 text-stone-50 shadow-xs'
                           : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400'
@@ -241,12 +281,13 @@ export default function ProductDetailPage() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700">
                   Colorway: <span className="font-normal text-stone-500 capitalize">{selectedColor}</span>
                 </p>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Select colorway">
                   {product.colors.map((c) => (
                     <button
                       key={c}
                       onClick={() => setSelectedColor(c)}
-                      className={`h-9 px-4 border text-xs font-medium transition-all cursor-pointer ${
+                      aria-pressed={selectedColor === c}
+                      className={`h-9 cursor-pointer border px-4 text-xs font-medium transition-all duration-150 ${
                         selectedColor === c
                           ? 'border-stone-950 bg-stone-950 text-stone-50 shadow-xs'
                           : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400'
@@ -275,7 +316,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleWishlistClick}
                   aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-stone-300 bg-white hover:border-stone-950 transition-colors active:scale-95 cursor-pointer shadow-2xs"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-stone-300 bg-white hover:border-stone-950 transition-colors duration-150 active:scale-95 cursor-pointer shadow-2xs"
                 >
                   <Heart
                     size={18}
@@ -323,38 +364,14 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Customer Reviews Section */}
-        <div className="mt-20 border-t border-stone-200/80 pt-12">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                Verified Feedback
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-stone-950 tracking-tight mt-1">
-                Customer Reviews
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-stone-950">{product.rating.toFixed(1)}</span>
-              <div>
-                <Rating value={product.rating} count={product.reviewCount} size="md" />
-                <p className="text-[11px] text-stone-400">Based on verified purchases</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-stone-50 border border-stone-200/80 p-6 text-center text-xs text-stone-500">
-            <p className="font-medium text-stone-800 mb-1">[REAL REVIEWS]</p>
-            <p>Customer feedback and fit ratings will synchronize live from the partner store review engine.</p>
-          </div>
-        </div>
+        <ProductReviews product={product} />
 
         {/* Related Products */}
         {related.length > 0 && (
           <div className="mt-20 border-t border-stone-200/80 pt-12">
             <div className="mb-8 flex items-baseline justify-between">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
                   Curated Match
                 </span>
                 <h2 className="text-xl sm:text-2xl font-bold text-stone-950 tracking-tight mt-1">
@@ -363,7 +380,7 @@ export default function ProductDetailPage() {
               </div>
               <Link
                 to={`/shop?category=${encodeURIComponent(product.category)}`}
-                className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors"
+                className="text-xs font-semibold uppercase tracking-wider text-stone-900 hover:text-stone-500 transition-colors duration-150"
               >
                 More in {product.category}
               </Link>
@@ -373,12 +390,17 @@ export default function ProductDetailPage() {
         )}
       </div>
 
-      {/* Sticky Mobile Purchase Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-stone-200 bg-white/95 backdrop-blur-md p-3 px-4 lg:hidden shadow-lg">
+      {/* Sticky mobile purchase bar. z-10, below the mobile navigation panel
+          (z-20) and the header (z-30) - an open menu must cover it, not sit
+          under it - and padded for the iOS home indicator. */}
+      <div
+        data-print-hide
+        className="fixed bottom-0 left-0 right-0 z-10 border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md lg:hidden"
+      >
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="truncate text-xs font-medium text-stone-900">{product.name}</p>
-            <p className="text-sm font-bold text-stone-950">{formatRupiah(product.price)}</p>
+            <p className="text-sm font-bold tabular-nums text-stone-950">{formatRupiah(product.price)}</p>
           </div>
           <Button
             size="md"
