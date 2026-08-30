@@ -17,14 +17,13 @@ type SearchModalProps = {
 /** Every term here is checked against the catalog - a chip that leads to an
     empty result page is worse than no chip at all. */
 const TRENDING_SEARCHES = [
-  'Boxy Hoodie',
-  'Utility Cargo',
-  'Canvas Tote',
-  'Batik Shirt',
-  'Oversized Tee',
+  'Heavyweight Tee',
+  'Classic Tee',
+  'LOKAL',
+  'Boxy Tee',
 ];
 
-const DISCOVERY_CATEGORIES = ['T-Shirts', 'Hoodies', 'Jackets', 'Pants', 'Bags', 'Accessories'];
+const DISCOVERY_CATEGORIES = ['T-Shirts'];
 
 const MAX_RESULTS = 6;
 /** Keep in sync with the surface/backdrop transition duration below. */

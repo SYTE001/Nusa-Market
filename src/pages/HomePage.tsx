@@ -10,16 +10,8 @@ import { Button } from '../components/ui/Button';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // Category tile images live in public/images/categories/.
-// Drop a <category>.webp file there and refresh — no code change needed.
-// The tile container has a bg-stone-100 background, so a missing file
-// shows a neutral grey square rather than a broken-image icon.
 const CATEGORY_IMAGES: Record<string, string> = {
-  'T-Shirts':    '/images/categories/t-shirts.webp',
-  Hoodies:       '/images/categories/hoodies.webp',
-  Pants:         '/images/categories/pants.webp',
-  Jackets:       '/images/categories/jackets.webp',
-  Accessories:   '/images/categories/accessories.webp',
-  Bags:          '/images/categories/bags.webp',
+  'T-Shirts': '/images/categories/t-shirts.webp',
 };
 
 /**
@@ -104,8 +96,8 @@ export default function HomePage() {
                 4:5 quietly flattened towards square on wide screens. */}
             <div className="relative mx-auto aspect-[4/5] w-full max-w-[368px] overflow-hidden bg-stone-200 shadow-sm border border-stone-300/60">
               <img
-                src="/images/editorial/hero.webp"
-                alt="Model wearing the heavyweight boxy fleece from the NusaMarket lookbook"
+                src="/images/products/lokal-classic-tee/01.webp"
+                alt="Classic Heavyweight Tee from the NusaMarket lookbook"
                 width={900}
                 height={1125}
                 fetchPriority="high"
@@ -116,12 +108,12 @@ export default function HomePage() {
               <div className="absolute bottom-4 left-4 right-4 text-white flex items-end justify-between">
                 <div>
                   <p className="text-[9px] uppercase tracking-[0.2em] font-semibold text-stone-300">Lookbook 01</p>
-                  <p className="text-xs sm:text-sm font-semibold">Heavyweight Boxy Fleece in Bone</p>
+                  <p className="text-xs sm:text-sm font-semibold">Classic Heavyweight Boxy Tee</p>
                 </div>
                 <Link
-                  to="/product/lokal-heavyweight-hoodie"
+                  to="/product/lokal-classic-tee"
                   className="bg-white/95 backdrop-blur-xs text-stone-950 p-2 text-xs hover:bg-white transition-colors duration-150"
-                  aria-label="View featured hoodie"
+                  aria-label="View featured tee"
                 >
                   <ArrowRight size={15} />
                 </Link>
