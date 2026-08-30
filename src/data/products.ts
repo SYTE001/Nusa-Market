@@ -1,4 +1,5 @@
 import type { Product } from '../types';
+import { getProductImages } from '../utils/productImages';
 
 export const products: Product[] = [
   // T-Shirts
@@ -12,11 +13,7 @@ export const products: Product[] = [
     originalPrice: 199000,
     rating: 4.8,
     reviewCount: 128,
-    images: [
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-classic-tee'),
     description:
       'Our bestselling everyday tee crafted from 230gsm ring-spun combed cotton. Pre-shrunk with a relaxed boxy cut, ribbed collar, and blind-stitched hem.',
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -33,11 +30,7 @@ export const products: Product[] = [
     price: 189000,
     rating: 4.6,
     reviewCount: 74,
-    images: [
-      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-graphic-tee'),
     description:
       'A contemporary silhouette featuring hand-drawn geometric batik motifs discharge-printed on breathable 24s cotton for a soft hand-feel.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -54,11 +47,7 @@ export const products: Product[] = [
     price: 165000,
     rating: 4.9,
     reviewCount: 203,
-    images: [
-      'https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1503342394128-c104d54dba01?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-oversized-tee'),
     description:
       'Engineered with dropped shoulders and a wider chest profile. Cut from 240gsm high-density jersey with reinforced neck tape.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -77,11 +66,7 @@ export const products: Product[] = [
     originalPrice: 189000,
     rating: 4.4,
     reviewCount: 52,
-    images: [
-      'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1527719327859-c6ce80353573?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('garis-stripe-tee'),
     description:
       'Classic yarn-dyed horizontal stripes knit from lightweight, breathable organic cotton jersey. Built for tropical versatility.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -99,11 +84,7 @@ export const products: Product[] = [
     price: 449000,
     rating: 4.9,
     reviewCount: 156,
-    images: [
-      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-heavyweight-hoodie'),
     description:
       'Heavyweight 480gsm custom-milled fleece with double-layer hood, seamless kangaroo pocket, and 2x2 ribbed side gussets.',
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -122,11 +103,7 @@ export const products: Product[] = [
     originalPrice: 479000,
     rating: 4.5,
     reviewCount: 89,
-    images: [
-      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-zip-hoodie'),
     description:
       'Versatile 360gsm loopback French terry zip hoodie with custom matte two-way metal zipper and hidden media pocket.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -143,11 +120,7 @@ export const products: Product[] = [
     price: 329000,
     rating: 4.7,
     reviewCount: 112,
-    images: [
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-cropped-hoodie'),
     description:
       'Subtly cropped relaxed silhouette crafted in soft brushed cotton fleece with raw hem accents and tonal embroidery.',
     sizes: ['XS', 'S', 'M', 'L'],
@@ -165,11 +138,7 @@ export const products: Product[] = [
     price: 499000,
     rating: 4.8,
     reviewCount: 98,
-    images: [
-      'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('garis-cargo-pants'),
     description:
       'Tactical six-pocket trousers cut from durable 10oz cotton twill. Featuring articulated knee darts and adjustable ankle toggles.',
     sizes: ['28', '30', '32', '34', '36'],
@@ -187,11 +156,7 @@ export const products: Product[] = [
     originalPrice: 449000,
     rating: 4.5,
     reviewCount: 63,
-    images: [
-      'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1604176354204-9268737828e4?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-chino-pants'),
     description:
       'Single-pleat tailored chinos in premium stretch cotton twill. Tapered hem with horn buttons and waistband coin pocket.',
     sizes: ['28', '30', '32', '34'],
@@ -207,11 +172,7 @@ export const products: Product[] = [
     price: 299000,
     rating: 4.6,
     reviewCount: 141,
-    images: [
-      'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-jogger-pants'),
     description:
       'Minimalist sweatpants in 380gsm loopback cotton. Encased elastic waistband with waxed cotton cord and zip side pockets.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -230,11 +191,7 @@ export const products: Product[] = [
     price: 649000,
     rating: 4.8,
     reviewCount: 87,
-    images: [
-      'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-coach-jacket'),
     description:
       'Matte water-repellent Taslan nylon shell with breathable mesh lining. Matte snap buttons, drawstring hem, and interior chest pocket.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -253,11 +210,7 @@ export const products: Product[] = [
     originalPrice: 749000,
     rating: 4.7,
     reviewCount: 64,
-    images: [
-      'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-denim-jacket'),
     description:
       '13.5oz ring-spun denim jacket finished with an authentic stone enzyme wash for a naturally worn-in drape. Custom antique brass hardware.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -273,11 +226,7 @@ export const products: Product[] = [
     price: 729000,
     rating: 4.7,
     reviewCount: 45,
-    images: [
-      'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('garis-bomber-jacket'),
     description:
       'Sleek modern flight jacket with satin-finish nylon twill, lightweight insulation, chunky two-way front zip, and signature sleeve utility pocket.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -296,10 +245,7 @@ export const products: Product[] = [
     price: 149000,
     rating: 4.5,
     reviewCount: 178,
-    images: [
-      'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-canvas-cap', 2),
     description:
       'Unstructured low-profile 6-panel silhouette in 100% garment-washed cotton canvas. Antique brass buckle clasp.',
     stock: 80,
@@ -315,10 +261,7 @@ export const products: Product[] = [
     price: 99000,
     rating: 4.6,
     reviewCount: 94,
-    images: [
-      'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1618354691792-d1d42acfd860?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-beanie', 2),
     description:
       '7-gauge heavy ribbed knit beanie woven from soft anti-pilling yarn. Folded cuff with tonal woven flag label.',
     stock: 60,
@@ -333,9 +276,7 @@ export const products: Product[] = [
     price: 129000,
     rating: 4.3,
     reviewCount: 38,
-    images: [
-      'https://images.unsplash.com/photo-1624222247344-550fb60583dc?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-canvas-belt', 1),
     description:
       'Heavy-duty nylon webbing belt with quick-release matte anodized aluminum buckle. Fully adjustable 125cm length.',
     stock: 45,
@@ -350,9 +291,7 @@ export const products: Product[] = [
     price: 89000,
     rating: 4.8,
     reviewCount: 211,
-    images: [
-      'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('garis-wool-socks', 1),
     description:
       'Three pairs of cushioned crew socks knit from combed cotton and Lycra. Reinforced arch compression and seamless toe closure.',
     stock: 100,
@@ -369,10 +308,7 @@ export const products: Product[] = [
     price: 199000,
     rating: 4.9,
     reviewCount: 142,
-    images: [
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-tote-bag', 2),
     description:
       'Heavy-duty 16oz duck canvas tote featuring reinforced box-stitched handles, internal brass key clasp, and zippered security pocket.',
     stock: 35,
@@ -389,10 +325,7 @@ export const products: Product[] = [
     originalPrice: 699000,
     rating: 4.6,
     reviewCount: 67,
-    images: [
-      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-daypack', 2),
     description:
       'Technical commuter backpack built from 500D water-repellent Cordura nylon. Padded 16" laptop sleeve, YKK Aquaguard zippers, and ergonomic air-mesh back panel.',
     stock: 18,
@@ -408,10 +341,7 @@ export const products: Product[] = [
     price: 279000,
     rating: 4.5,
     reviewCount: 88,
-    images: [
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-crossbody', 2),
     description:
       'Compact daily carry pouch in diamond ripstop polyester. Magnetic quick-release strap, front mesh stash compartment, and water-sealed zippers.',
     stock: 28,
@@ -427,10 +357,7 @@ export const products: Product[] = [
     price: 219000,
     rating: 4.4,
     reviewCount: 53,
-    images: [
-      'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('garis-waist-bag', 2),
     description:
       'Low-profile modular sling engineered for hands-free essentials. Weather-resistant ballistic nylon with Fidlock-style buckle.',
     stock: 22,
@@ -447,10 +374,7 @@ export const products: Product[] = [
     price: 489000,
     rating: 4.9,
     reviewCount: 73,
-    images: [
-      'https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('lokal-fleece-jacket', 2),
     description:
       '320gsm plush Sherpa fleece zip jacket featuring contrast Taslan nylon chest pocket, stand-up storm collar, and Lycra binding.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -467,10 +391,7 @@ export const products: Product[] = [
     price: 349000,
     rating: 4.8,
     reviewCount: 109,
-    images: [
-      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('nusantara-batik-shirt', 2),
     description:
       'Relaxed camp collar short-sleeve shirt crafted in fluid woven rayon with hand-printed contemporary Nusantara motifs. Natural mother-of-pearl buttons.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -488,10 +409,7 @@ export const products: Product[] = [
     originalPrice: 529000,
     rating: 4.7,
     reviewCount: 81,
-    images: [
-      'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=900&q=80',
-    ],
+    images: getProductImages('kotabaru-wide-pants', 2),
     description:
       'Airy 55% French linen and 45% organic cotton blend trousers. Clean flat front with elasticated rear waist and deep slash pockets.',
     sizes: ['S', 'M', 'L', 'XL'],

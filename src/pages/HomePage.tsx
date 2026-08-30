@@ -9,14 +9,17 @@ import { NewsletterForm } from '../components/sections/NewsletterForm';
 import { Button } from '../components/ui/Button';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
+// Category tile images live in public/images/categories/.
+// Drop a <category>.webp file there and refresh — no code change needed.
+// The tile container has a bg-stone-100 background, so a missing file
+// shows a neutral grey square rather than a broken-image icon.
 const CATEGORY_IMAGES: Record<string, string> = {
-  'T-Shirts': 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-  // Not the hero photograph: the two sit one above the other on this page.
-  Hoodies: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80',
-  Pants: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80',
-  Jackets: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=600&q=80',
-  Accessories: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=600&q=80',
-  Bags: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
+  'T-Shirts':    '/images/categories/t-shirts.webp',
+  Hoodies:       '/images/categories/hoodies.webp',
+  Pants:         '/images/categories/pants.webp',
+  Jackets:       '/images/categories/jackets.webp',
+  Accessories:   '/images/categories/accessories.webp',
+  Bags:          '/images/categories/bags.webp',
 };
 
 /**
@@ -101,11 +104,12 @@ export default function HomePage() {
                 4:5 quietly flattened towards square on wide screens. */}
             <div className="relative mx-auto aspect-[4/5] w-full max-w-[368px] overflow-hidden bg-stone-200 shadow-sm border border-stone-300/60">
               <img
-                src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=85"
+                src="/images/editorial/hero.webp"
                 alt="Model wearing the heavyweight boxy fleece from the NusaMarket lookbook"
                 width={900}
                 height={1125}
                 fetchPriority="high"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 className="h-full w-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -164,6 +168,7 @@ export default function HomePage() {
                   width={600}
                   height={450}
                   loading="lazy"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
                 />
               </div>
@@ -207,11 +212,12 @@ export default function HomePage() {
           {/* Image half */}
           <div className="lg:col-span-7 relative h-60 sm:h-72 lg:h-full overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=1100&q=85"
+              src="/images/editorial/archival-series.webp"
               alt="Archival Series campaign photograph"
               width={1100}
               height={734}
               loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
               className="h-full w-full object-cover object-center brightness-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-stone-950 via-stone-950/40 to-transparent" />

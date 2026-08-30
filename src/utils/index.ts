@@ -62,12 +62,14 @@ export function shippingCostFor(method: ShippingMethod, subtotal: number): numbe
 }
 
 /**
- * The catalog stores a gallery-sized 900px rendition of every image and
- * Unsplash serves whatever width the URL asks for, so a 150px thumbnail asks
- * for a thumbnail and a 300px card asks for a card. `width` is the CSS width
- * the image occupies; the request doubles it for high-density screens and never
- * exceeds the stored rendition. URLs without a `w=` parameter are returned
- * untouched, so local assets pass through unharmed.
+ * Adjusts the width parameter on Unsplash-style URLs so the browser fetches
+ * a size-appropriate rendition rather than always downloading the 900 px master.
+ * `width` is the CSS width the image occupies; the request doubles it for
+ * high-density screens and never exceeds the stored 900 px rendition.
+ *
+ * Local asset paths (e.g. `/images/products/lokal-classic-tee/01.webp`) do not
+ * contain a `?w=` parameter, so the regex never matches and they are returned
+ * untouched — this function is a zero-cost passthrough for local files.
  */
 export function imageSource(src: string, width: number): string {
   return src.replace(/([?&]w=)\d+/, `$1${Math.min(900, width * 2)}`);

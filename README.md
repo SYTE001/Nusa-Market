@@ -250,15 +250,123 @@ Known limitations:
 - **Sample content.** Products, prices, brands and reviews are fictional data
   bundled with the app; reviews are generated deterministically from a product id
   so they stay stable between renders.
-- **Remote imagery.** Photography is loaded from Unsplash, so the catalog needs a
-  network connection to look right; each frame degrades to a monogram if it does not.
+- **Local imagery (none bundled).** Product and editorial photos are not committed
+  to this repository. The app resolves images from `public/images/` at runtime.
+  If a file is absent the existing `onError` handlers on every image surface
+  silently switch to the brand monogram or a neutral tile — no broken-image icons
+  appear and no layout shifts occur.
 - **Search scope.** Matching covers product name, brand and category — not
   descriptions or attributes.
 - **Static stock.** Stock counts are fixed per product; nothing decrements on
   purchase.
-- **Shared gallery photography.** All 24 primary product images are distinct, but
-  a few secondary gallery frames are reused between products in the same
-  category — a property of the sample data, not of the gallery code.
 - **Verification is static.** Typecheck, lint and production build all pass, and
   the flows were traced through the source. No browser-driven or automated test
   suite is committed.
+
+## Product Images
+
+Product photography lives entirely inside `public/images/`. No code change is
+required to replace a photo.
+
+### Folder layout
+
+```
+public/
+└── images/
+    ├── products/
+    │   ├── lokal-classic-tee/
+    │   │   ├── 01.webp   ← primary / front image
+    │   │   ├── 02.webp   ← secondary / hover image
+    │   │   └── 03.webp   ← third gallery frame
+    │   ├── nusantara-graphic-tee/
+    │   │   └── ...
+    │   └── <product-slug>/
+    │       └── ...
+    ├── categories/
+    │   ├── t-shirts.webp
+    │   ├── hoodies.webp
+    │   ├── pants.webp
+    │   ├── jackets.webp
+    │   ├── accessories.webp
+    │   └── bags.webp
+    └── editorial/
+        ├── hero.webp           ← homepage hero portrait
+        └── archival-series.webp ← promotional banner
+```
+
+### Slug → folder mapping
+
+Each product uses its `slug` field (from `src/data/products.ts`) as the folder
+name. The complete list:
+
+| Product | Folder |
+|---|---|
+| Classic Heavyweight Tee | `lokal-classic-tee/` |
+| Batik Motif Graphic Tee | `nusantara-graphic-tee/` |
+| Drop Shoulder Oversized Tee | `kotabaru-oversized-tee/` |
+| Yarn-Dyed Stripe Tee | `garis-stripe-tee/` |
+| 480gsm Boxy Pullover Hoodie | `lokal-heavyweight-hoodie/` |
+| French Terry Full-Zip Hoodie | `nusantara-zip-hoodie/` |
+| Minimalist Relaxed Hoodie | `kotabaru-cropped-hoodie/` |
+| Wide-Leg Utility Cargo Pants | `garis-cargo-pants/` |
+| Pleated Relaxed Chino | `lokal-chino-pants/` |
+| Heavyweight Loopback Jogger | `nusantara-jogger-pants/` |
+| Nylon Taslan Coach Jacket | `lokal-coach-jacket/` |
+| Vintage Wash Denim Trucker | `kotabaru-denim-jacket/` |
+| Minimalist MA-1 Bomber | `garis-bomber-jacket/` |
+| Washed Canvas Six-Panel Cap | `lokal-canvas-cap/` |
+| Chunky Ribbed Knit Beanie | `nusantara-beanie/` |
+| Tactical Webbing Belt | `kotabaru-canvas-belt/` |
+| Ribbed Combed Socks (3-Pack) | `garis-wool-socks/` |
+| 16oz Heavy Canvas Market Tote | `lokal-tote-bag/` |
+| Cordura 20L Commuter Daypack | `nusantara-daypack/` |
+| Ripstop Utility Crossbody | `kotabaru-crossbody/` |
+| Modular Tactical Sling Bag | `garis-waist-bag/` |
+| High-Pile Thermal Fleece Jacket | `lokal-fleece-jacket/` |
+| Camp Collar Modern Batik Shirt | `nusantara-batik-shirt/` |
+| Relaxed Wide-Leg Linen Trousers | `kotabaru-wide-pants/` |
+
+### Image slots
+
+| Filename | Role |
+|---|---|
+| `01.webp` | Primary image — shown on all cards and as the default gallery frame |
+| `02.webp` | Secondary image — swaps in on hover (desktop product cards) |
+| `03.webp` | Third gallery frame — available in the product detail gallery |
+
+### Replacing a product photo
+
+1. Prepare the replacement as a `.webp` file.
+2. Name it `01.webp`, `02.webp`, or `03.webp` depending on which slot it fills.
+3. Drop it into `public/images/products/<product-slug>/`.
+4. Refresh the browser. The correct product automatically uses the new image.
+
+No TypeScript change is required.
+
+### Adding more gallery frames
+
+The resolver in `src/utils/productImages.ts` accepts an optional `count`
+argument. To expose a fourth or fifth frame for a product, update the product
+entry in `src/data/products.ts`:
+
+```ts
+images: getProductImages('lokal-classic-tee', 5),
+```
+
+Then add `04.webp` and `05.webp` to the corresponding folder.
+
+### Fallback behaviour
+
+If an image file is absent or fails to load, the existing `onError` handlers on
+every image surface activate the fallback — no code change and no broken-image
+icons:
+
+| Surface | Fallback |
+|---|---|
+| Product card (primary) | Product name in a neutral stone tile |
+| Product card (hover) | Hover swap disabled; primary image stays visible |
+| Cart / search thumbnails | Brand monogram (first two letters) |
+| Product detail thumbnails | Neutral grey square |
+| Product detail main stage | "Image perspective unavailable" message |
+
+
