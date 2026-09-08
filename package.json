@@ -1,7 +1,7 @@
 {
   "name": "nusamarket",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A premium responsive ecommerce storefront concept built for modern Indonesian local brands.",
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "images": "node scripts/generate-images.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -28,6 +29,8 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
+    "puppeteer-core": "^25.10.0",
+    "sharp": "^0.34.1",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"

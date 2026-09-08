@@ -1,377 +1,258 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Info, Truck, CreditCard } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import type { PaymentMethod, ShippingMethod } from '../types';
 import { useCartStore } from '../stores/cartStore';
 import { useOrderStore } from '../stores/orderStore';
-import { CartItem } from '../components/cart/CartItem';
-import { CartSummary } from '../components/cart/CartSummary';
-import { Button } from '../components/ui/Button';
+import { shippingCostFor, formatRupiah, generateOrderId } from '../utils';
 import { Input } from '../components/ui/Input';
-import { Dropdown } from '../components/ui/Dropdown';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
-import { generateOrderId, SHIPPING_COSTS, shippingCostFor, formatRupiah } from '../utils';
-import type { CheckoutFormData } from '../types';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-const INDONESIAN_PROVINCES = [
-  'Aceh', 'Bali', 'Banten', 'Bengkulu', 'D.I. Yogyakarta', 'D.K.I. Jakarta',
-  'Gorontalo', 'Jambi', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Kalimantan Barat',
-  'Kalimantan Selatan', 'Kalimantan Tengah', 'Kalimantan Timur', 'Kalimantan Utara',
-  'Kepulauan Bangka Belitung', 'Kepulauan Riau', 'Lampung', 'Maluku', 'Maluku Utara',
-  'Nusa Tenggara Barat', 'Nusa Tenggara Timur', 'Papua', 'Papua Barat',
-  'Papua Barat Daya', 'Papua Pegunungan', 'Papua Selatan', 'Papua Tengah',
-  'Riau', 'Sulawesi Barat', 'Sulawesi Selatan', 'Sulawesi Tengah',
-  'Sulawesi Tenggara', 'Sulawesi Utara', 'Sumatera Barat', 'Sumatera Selatan',
-  'Sumatera Utara',
+const schema = z.object({
+  name: z.string().min(3, 'Full name is required'),
+  email: z.string().email('Enter a valid email address'),
+  phone: z.string().min(9, 'Enter a valid phone number'),
+  address: z.string().min(10, 'Street address is required'),
+  city: z.string().min(2, 'City is required'),
+  province: z.string().min(2, 'Province is required'),
+  postalCode: z.string().regex(/^\d{5}$/, 'Postal code is 5 digits'),
+});
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; note: string }[] = [
+  { value: 'bank-transfer', label: 'Bank Transfer', note: 'Virtual Account — manual confirmation' },
+  { value: 'e-wallet', label: 'Instant E-Wallet', note: 'QRIS scan at the next step' },
+  { value: 'cod', label: 'Cash on Delivery', note: 'Available for regular shipping only' },
 ];
 
-const schema = z.object({
-  name: z.string().min(1, 'Full name is required'),
-  email: z.email('Please enter a valid email address'),
-  phone: z.string().min(1, 'Contact phone number is required'),
-  address: z.string().min(1, 'Street address is required'),
-  city: z.string().min(1, 'City/Regency is required'),
-  province: z.string().min(1, 'Please select your province'),
-  postalCode: z.string().regex(/^\d{5}$/, 'Postal code must be exactly 5 digits'),
-  shippingMethod: z.enum(['regular', 'express']),
-  paymentMethod: z.enum(['bank-transfer', 'e-wallet', 'cod']),
-});
+const SHIPPING_METHODS: { value: ShippingMethod; label: string; note: string }[] = [
+  { value: 'regular', label: 'Standard Courier Dispatch', note: '3–5 days' },
+  { value: 'express', label: 'Express Air Delivery', note: '1–2 days' },
+];
 
 export default function CheckoutPage() {
   useDocumentTitle('Checkout — NusaMarket');
 
-  const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore((s) => s.subtotal());
-  const totalItems = useCartStore((s) => s.totalItems());
   const clearCart = useCartStore((s) => s.clearCart);
-  const setCurrentOrder = useOrderStore((s) => s.setCurrentOrder);
+  const setOrder = useOrderStore((s) => s.setOrder);
+  const navigate = useNavigate();
+
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('regular');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank-transfer');
   const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
-  } = useForm<CheckoutFormData>({
+  } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      province: '',
-      shippingMethod: 'regular',
-      paymentMethod: 'bank-transfer',
-    },
   });
 
-  // useWatch subscribes to a single field through `control` instead of
-  // re-rendering the page on every keystroke in every input, the way the
-  // form-wide `watch()` does.
-  const shippingMethod = useWatch({ control, name: 'shippingMethod' });
-  const paymentMethod = useWatch({ control, name: 'paymentMethod' });
   const shippingCost = shippingCostFor(shippingMethod, subtotal);
-  const shippingIsFree = shippingCost === 0;
   const total = subtotal + shippingCost;
-
-  async function onSubmit(data: CheckoutFormData) {
-    setSubmitting(true);
-    // Simulate short asynchronous order creation
-    await new Promise((r) => setTimeout(r, 900));
-
-    const order = {
-      id: generateOrderId(),
-      date: new Date().toISOString(),
-      items: [...items],
-      subtotal,
-      shippingCost,
-      total,
-      shippingMethod: data.shippingMethod,
-      paymentMethod: data.paymentMethod,
-      customer: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        province: data.province,
-        postalCode: data.postalCode,
-      },
-    };
-
-    setCurrentOrder(order);
-    clearCart();
-    navigate('/order/success', { replace: true });
-  }
 
   if (items.length === 0) {
     return (
-      <div className="pt-20">
+      <div className="pt-10">
         <EmptyState
           type="cart"
-          message="Your shopping bag is empty."
-          action={{ label: 'Return to Catalog', onClick: () => navigate('/shop') }}
+          action={{ label: 'Explore the Collection', onClick: () => navigate('/shop') }}
         />
       </div>
     );
   }
 
+  function onSubmit(data: z.infer<typeof schema>) {
+    setSubmitting(true);
+    // Resolve in the browser: this demo processes no payment.
+    window.setTimeout(() => {
+      setOrder({
+        id: generateOrderId(),
+        date: new Date().toISOString(),
+        items,
+        subtotal,
+        shippingCost,
+        total,
+        shippingMethod,
+        paymentMethod,
+        customer: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          city: data.city,
+          province: data.province,
+          postalCode: data.postalCode,
+        },
+      });
+      clearCart();
+      navigate('/order/success');
+    }, 900);
+  }
+
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-      {/* Page Title */}
-      <div className="mb-8 border-b border-stone-200/80 pb-4">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <div className="mb-8 border-b border-stone-200/80 pb-6">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-          Order Placement
+          Final Step
         </span>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950 mt-1">
-          Checkout & Dispatch
+        <h1 className="font-display mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-4xl">
+          Checkout
         </h1>
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-stone-500">
+          <Lock size={12} aria-hidden="true" />
+          Demo checkout — no payment is processed and no data leaves the browser.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
-          {/* Left Column: Form Details */}
-          <div className="lg:col-span-7 flex flex-col gap-10">
-            {/* Section 01: Contact */}
-            <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
-              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-500">01</span>
-                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
-                  Client & Contact Information
-                </h2>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  label="Full Name"
-                  {...register('name')}
-                  error={errors.name?.message}
-                  autoComplete="name"
-                  placeholder="e.g. Raden Arya"
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        {/* Left: form */}
+        <div className="flex flex-col gap-8 lg:col-span-7">
+          {/* Recipient */}
+          <fieldset className="flex flex-col gap-4">
+            <legend className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              Recipient Information
+            </legend>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Full Name" placeholder="Nama lengkap" error={errors.name?.message} {...register('name')} />
+              <Input label="Email" type="email" placeholder="you@email.com" error={errors.email?.message} {...register('email')} />
+              <Input label="Phone" type="tel" placeholder="+62 8xx xxxx xxxx" error={errors.phone?.message} {...register('phone')} />
+            </div>
+          </fieldset>
+
+          {/* Address */}
+          <fieldset className="flex flex-col gap-4">
+            <legend className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              Delivery Address
+            </legend>
+            <Input label="Street Address" placeholder="Jalan, number, RT/RW" error={errors.address?.message} {...register('address')} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Input label="City" placeholder="Kota" error={errors.city?.message} {...register('city')} />
+              <Input label="Province" placeholder="Provinsi" error={errors.province?.message} {...register('province')} />
+              <Input label="Postal Code" inputMode="numeric" maxLength={5} placeholder="12345" error={errors.postalCode?.message} {...register('postalCode')} />
+            </div>
+          </fieldset>
+
+          {/* Shipping */}
+          <fieldset className="flex flex-col gap-3">
+            <legend className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              Shipping Method
+            </legend>
+            {SHIPPING_METHODS.map((m) => (
+              <label
+                key={m.value}
+                className={`flex cursor-pointer items-center justify-between gap-3 border p-4 transition-colors duration-150 ${
+                  shippingMethod === m.value ? 'border-ink bg-stone-50' : 'border-stone-200 hover:border-stone-400'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="shipping"
+                    value={m.value}
+                    checked={shippingMethod === m.value}
+                    onChange={() => setShippingMethod(m.value)}
+                    className="accent-clay-600"
+                  />
+                  <span>
+                    <span className="block text-xs font-semibold text-ink">{m.label}</span>
+                    <span className="block text-[11px] text-stone-500">{m.note}</span>
+                  </span>
+                </span>
+                <span className="text-xs font-semibold tabular-nums text-ink">
+                  {shippingCostFor(m.value, subtotal) === 0
+                    ? 'Complimentary'
+                    : formatRupiah(shippingCostFor(m.value, subtotal))}
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          {/* Payment */}
+          <fieldset className="flex flex-col gap-3">
+            <legend className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              Payment Method
+            </legend>
+            {PAYMENT_METHODS.map((m) => (
+              <label
+                key={m.value}
+                className={`flex cursor-pointer items-center gap-3 border p-4 transition-colors duration-150 ${
+                  paymentMethod === m.value ? 'border-ink bg-stone-50' : 'border-stone-200 hover:border-stone-400'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value={m.value}
+                  checked={paymentMethod === m.value}
+                  onChange={() => setPaymentMethod(m.value)}
+                  className="accent-clay-600"
                 />
-                <Input
-                  label="Email Address"
-                  type="email"
-                  {...register('email')}
-                  error={errors.email?.message}
-                  autoComplete="email"
-                  placeholder="name@domain.com"
-                />
-                <Input
-                  label="WhatsApp / Phone Number"
-                  type="tel"
-                  {...register('phone')}
-                  error={errors.phone?.message}
-                  autoComplete="tel"
-                  placeholder="+62 812-xxxx-xxxx"
-                  className="sm:col-span-2"
-                />
-              </div>
-            </section>
-
-            {/* Section 02: Shipping Address */}
-            <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
-              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-500">02</span>
-                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
-                  Delivery Destination
-                </h2>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  label="Street Address & Apt/Unit"
-                  {...register('address')}
-                  error={errors.address?.message}
-                  autoComplete="street-address"
-                  placeholder="Jl. Senopati No. 42, Kebayoran Baru"
-                  className="sm:col-span-2"
-                />
-                <Input
-                  label="City / Regency"
-                  {...register('city')}
-                  error={errors.city?.message}
-                  autoComplete="address-level2"
-                  placeholder="Jakarta Selatan"
-                />
-                {/* Controlled through RHF so the field owns a ref and an invalid
-                    submit can move focus to it like any other input. */}
-                <Controller
-                  control={control}
-                  name="province"
-                  render={({ field, fieldState }) => (
-                    <Dropdown
-                      id="province"
-                      label="Province"
-                      size="md"
-                      placeholder="Select province..."
-                      options={INDONESIAN_PROVINCES}
-                      value={field.value}
-                      onChange={field.onChange}
-                      ref={field.ref}
-                      error={fieldState.error?.message}
-                    />
-                  )}
-                />
-                <Input
-                  label="Postal Code"
-                  {...register('postalCode')}
-                  error={errors.postalCode?.message}
-                  autoComplete="postal-code"
-                  inputMode="numeric"
-                  placeholder="12190"
-                />
-              </div>
-            </section>
-
-            {/* Section 03: Shipping Method */}
-            <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
-              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-500">03</span>
-                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
-                  Shipping Courier
-                </h2>
-              </div>
-              <fieldset className="flex flex-col gap-3">
-                <legend className="sr-only">Shipping courier</legend>
-                {(['regular', 'express'] as const).map((method) => (
-                  <label
-                    key={method}
-                    className={`flex items-center justify-between p-4 border transition-all duration-150 cursor-pointer ${
-                      shippingMethod === method
-                        ? 'border-stone-950 bg-stone-50/70 shadow-xs'
-                        : 'border-stone-200/80 bg-white hover:border-stone-400'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <input
-                        type="radio"
-                        value={method}
-                        {...register('shippingMethod')}
-                        className="accent-stone-950 h-4 w-4"
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Truck size={15} className="text-stone-700" />
-                          <p className="text-xs sm:text-sm font-semibold text-stone-950 capitalize">
-                            {method === 'regular' ? 'Standard Courier Dispatch' : 'Express Air Delivery'}
-                          </p>
-                        </div>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
-                          {method === 'regular' ? '3–5 business days nationwide' : '1–2 business days priority dispatch'}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-right text-xs font-bold tabular-nums text-stone-950 sm:text-sm">
-                      {shippingIsFree ? (
-                        <>
-                          <s className="block text-[11px] font-medium text-stone-500">
-                            {formatRupiah(SHIPPING_COSTS[method])}
-                          </s>
-                          <span className="text-emerald-700">Complimentary</span>
-                        </>
-                      ) : (
-                        formatRupiah(SHIPPING_COSTS[method])
-                      )}
-                    </span>
-                  </label>
-                ))}
-                {errors.shippingMethod && (
-                  <p className="text-[11px] font-medium text-red-600">{errors.shippingMethod.message}</p>
-                )}
-              </fieldset>
-            </section>
-
-            {/* Section 04: Payment Method */}
-            <section className="bg-white border border-stone-200/80 p-6 sm:p-8 shadow-2xs">
-              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-stone-100">
-                <span className="text-xs font-bold font-mono text-stone-500">04</span>
-                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-950">
-                  Payment Gateway
-                </h2>
-              </div>
-              <fieldset className="flex flex-col gap-3">
-                <legend className="sr-only">Payment method</legend>
-                {[
-                  {
-                    value: 'bank-transfer',
-                    label: 'Virtual Account / Bank Transfer',
-                    desc: 'BCA, Mandiri, BNI, BRI automated reconciliation',
-                  },
-                  {
-                    value: 'e-wallet',
-                    label: 'QRIS & Instant E-Wallet',
-                    desc: 'GoPay, OVO, DANA, ShopeePay direct QR payment',
-                  },
-                  {
-                    value: 'cod',
-                    label: 'Cash on Delivery (COD)',
-                    desc: 'Pay cash directly upon parcel handover',
-                  },
-                ].map((pm) => (
-                  <label
-                    key={pm.value}
-                    className={`flex items-center gap-3.5 p-4 border transition-all duration-150 cursor-pointer ${
-                      paymentMethod === pm.value
-                        ? 'border-stone-950 bg-stone-50/70 shadow-xs'
-                        : 'border-stone-200/80 bg-white hover:border-stone-400'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      value={pm.value}
-                      {...register('paymentMethod')}
-                      className="accent-stone-950 h-4 w-4"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CreditCard size={15} className="text-stone-700" />
-                        <p className="text-xs sm:text-sm font-semibold text-stone-950">{pm.label}</p>
-                      </div>
-                      <p className="text-[11px] text-stone-500 mt-0.5">{pm.desc}</p>
-                    </div>
-                  </label>
-                ))}
-                {errors.paymentMethod && (
-                  <p className="text-[11px] font-medium text-red-600">{errors.paymentMethod.message}</p>
-                )}
-              </fieldset>
-            </section>
-          </div>
-
-          {/* Right Column: Sticky Summary */}
-          <div className="lg:col-span-5">
-            <div className="sticky top-[calc(var(--nm-header-h)+1.5rem)] border border-stone-200 bg-white p-6 sm:p-7 shadow-xs flex flex-col gap-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-stone-950 border-b border-stone-100 pb-3">
-                Order Review ({totalItems})
-              </h2>
-
-              <div className="divide-y divide-stone-100 max-h-72 overflow-y-auto pr-1">
-                {items.map((item, i) => (
-                  <CartItem key={`${item.product.id}-${i}`} item={item} compact />
-                ))}
-              </div>
-
-              <div>
-                <CartSummary subtotal={subtotal} shippingMethod={shippingMethod} compact />
-              </div>
-
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  fullWidth
-                  size="lg"
-                  loading={submitting}
-                >
-                  Place Order — {formatRupiah(total)}
-                </Button>
-              </div>
-
-              <div className="flex items-start gap-2 border-t border-stone-100 pt-3 text-[11px] leading-relaxed text-stone-500">
-                <Info size={13} className="mt-0.5 shrink-0 text-stone-700" aria-hidden="true" />
                 <span>
-                  Demonstration checkout — no payment is processed and no data leaves your browser.
+                  <span className="block text-xs font-semibold text-ink">{m.label}</span>
+                  <span className="block text-[11px] text-stone-500">{m.note}</span>
+                </span>
+              </label>
+            ))}
+            <p className="text-[11px] text-stone-400">
+              No payment is processed — this is a storefront demonstration.
+            </p>
+          </fieldset>
+        </div>
+
+        {/* Right: order summary */}
+        <div className="lg:col-span-5">
+          <div className="sticky top-[calc(var(--nm-header-h)+1.5rem)] flex flex-col gap-4 border border-stone-200 bg-white p-6 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-stone-900">
+              Order Summary
+            </h2>
+            <ul className="flex max-h-64 flex-col gap-3 overflow-y-auto text-xs">
+              {items.map((item, i) => (
+                <li key={`${item.product.id}-${i}`} className="flex items-start justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold text-ink">{item.product.name}</span>
+                    <span className="block text-[10px] text-stone-500">
+                      {[item.selectedSize, item.selectedColor].filter(Boolean).join(' · ')} × {item.quantity}
+                    </span>
+                    <span className="block text-[10px] uppercase tracking-wider text-clay-600">
+                      {item.product.craft.atelier}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-semibold tabular-nums text-ink">
+                    {formatRupiah(item.product.price * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-col gap-2 border-t border-stone-100 pt-3 text-xs">
+              <div className="flex justify-between">
+                <span className="text-stone-600">Garments Subtotal</span>
+                <span className="font-semibold tabular-nums text-ink">{formatRupiah(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-600">Domestic Shipping</span>
+                <span className="font-semibold tabular-nums text-ink">
+                  {shippingCost === 0 ? 'Complimentary' : formatRupiah(shippingCost)}
                 </span>
               </div>
+              <div className="flex justify-between border-t border-stone-100 pt-2">
+                <span className="font-semibold text-ink">Total</span>
+                <span className="font-bold tabular-nums text-ink">{formatRupiah(total)}</span>
+              </div>
             </div>
+            <Button type="submit" fullWidth size="lg" loading={submitting}>
+              {submitting ? 'Placing Order…' : 'Place Order'}
+            </Button>
+            <p className="text-center text-[10px] leading-relaxed text-stone-400">
+              By placing an order you agree to the demo terms: nothing is charged, nothing is shipped, everything is honest.
+            </p>
           </div>
         </div>
       </form>

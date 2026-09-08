@@ -3,37 +3,42 @@ import { Minus, Plus } from 'lucide-react';
 type QuantitySelectorProps = {
   value: number;
   min?: number;
-  max?: number;
-  onChange: (val: number) => void;
+  max: number;
+  onChange: (value: number) => void;
   size?: 'sm' | 'md';
 };
 
-export function QuantitySelector({ value, min = 1, max = 99, onChange, size = 'md' }: QuantitySelectorProps) {
-  const btnClass = size === 'sm'
-    ? 'h-7.5 w-7.5 text-stone-700 hover:bg-stone-100'
-    : 'h-9.5 w-9.5 text-stone-700 hover:bg-stone-100';
-  const displayClass = size === 'sm' ? 'w-8 text-xs' : 'w-10 text-sm';
+export function QuantitySelector({ value, min = 1, max, onChange, size = 'sm' }: QuantitySelectorProps) {
+  const h = size === 'sm' ? 'h-8' : 'h-12';
+  const w = size === 'sm' ? 'w-8' : 'w-11';
 
   return (
-    <div className="inline-flex items-center border border-stone-200/90 bg-white">
+    <div
+      role="group"
+      aria-label="Quantity"
+      className={`inline-flex items-center border border-stone-300 bg-white ${h}`}
+    >
       <button
-        type="button"
-        aria-label="Decrease quantity"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className={`${btnClass} flex items-center justify-center transition-colors duration-150 disabled:text-stone-300 disabled:hover:bg-transparent cursor-pointer`}
+        aria-label="Decrease quantity"
+        className={`flex ${h} ${w} items-center justify-center text-stone-600 transition-colors duration-150 hover:text-ink disabled:opacity-40 cursor-pointer`}
       >
-        <Minus size={size === 'sm' ? 11 : 13} strokeWidth={2} />
+        <Minus size={size === 'sm' ? 13 : 15} strokeWidth={2} />
       </button>
-      <span className={`${displayClass} select-none text-center font-medium text-stone-900`}>{value}</span>
+      <span
+        aria-live="polite"
+        className={`min-w-8 text-center text-xs font-semibold tabular-nums text-ink ${size === 'md' ? 'text-sm' : ''}`}
+      >
+        {value}
+      </span>
       <button
-        type="button"
-        aria-label="Increase quantity"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className={`${btnClass} flex items-center justify-center transition-colors duration-150 disabled:text-stone-300 disabled:hover:bg-transparent cursor-pointer`}
+        aria-label="Increase quantity"
+        className={`flex ${h} ${w} items-center justify-center text-stone-600 transition-colors duration-150 hover:text-ink disabled:opacity-40 cursor-pointer`}
       >
-        <Plus size={size === 'sm' ? 11 : 13} strokeWidth={2} />
+        <Plus size={size === 'sm' ? 13 : 15} strokeWidth={2} />
       </button>
     </div>
   );

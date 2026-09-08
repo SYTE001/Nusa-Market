@@ -3,12 +3,13 @@ import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { CartDrawer } from '../cart/CartDrawer';
+import { FlyToCartLayer } from '../cart/FlyToCartLayer';
 import { useUIStore } from '../../stores/uiStore';
 
 function PageLoader() {
   return (
     <div role="status" aria-label="Loading page" className="flex h-64 items-center justify-center">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-900" />
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-ink" />
     </div>
   );
 }
@@ -56,13 +57,10 @@ export function Layout() {
     }
 
     // Applying a filter or a sort only rewrites the query string. The catalog
-    // stays put and keeps the trigger focused, because yanking the viewport to
-    // the top and the focus ring into <main> mid-refinement loses the user their
-    // place and their keyboard position in the control they are still using.
+    // stays put and keeps the trigger focused.
     if (sameDocument) return;
 
-    // Back and forward keep their remembered scroll position - returning from a
-    // product to the catalog should land where the user left it, not at the top.
+    // Back and forward keep their remembered scroll position.
     if (navigationType !== 'POP') {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
@@ -78,7 +76,7 @@ export function Layout() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:bg-stone-950 focus:px-4 focus:py-2 focus:text-[11px] focus:font-semibold focus:uppercase focus:tracking-[0.14em] focus:text-stone-50"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:bg-ink focus:px-4 focus:py-2 focus:text-[11px] focus:font-semibold focus:uppercase focus:tracking-[0.14em] focus:text-canvas"
       >
         Skip to content
       </a>
@@ -90,7 +88,7 @@ export function Layout() {
         ref={mainRef}
         tabIndex={-1}
         inert={mobileMenuOpen}
-        className="flex-1 pt-[var(--nm-header-h)] focus:outline-none"
+        className="flex min-h-dvh flex-1 flex-col pt-[var(--nm-header-h)] focus:outline-none"
       >
         <div key={location.pathname} className="animate-page-enter">
           <Suspense fallback={<PageLoader />}>
@@ -104,6 +102,7 @@ export function Layout() {
       </div>
 
       <CartDrawer />
+      <FlyToCartLayer />
     </div>
   );
 }

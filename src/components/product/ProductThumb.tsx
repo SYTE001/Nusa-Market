@@ -1,53 +1,41 @@
 import { useState } from 'react';
 import type { Product } from '../../types';
-import { imageSource } from '../../utils';
 
 type ProductThumbProps = {
   product: Product;
-  /** Size/shape utilities for the frame, e.g. `h-16 w-12`. */
-  className?: string;
-  /** Intrinsic pixel size, so the browser reserves space before load. */
-  width: number;
-  height: number;
-  /** Subtle zoom when an ancestor marked `group` is hovered. */
-  zoomOnGroupHover?: boolean;
+  size?: 'sm' | 'md';
 };
 
 /**
- * Small product image frame shared by the cart, search results and the order
- * receipt. Falls back to the brand monogram when the remote image fails, so a
- * dead image URL never leaves an empty hole in a list.
+ * Square thumbnail with brand-monogram fallback (first two letters) when the
+ * image file is absent — used by cart rows and search results.
  */
-export function ProductThumb({
-  product,
-  className = '',
-  width,
-  height,
-  zoomOnGroupHover = false,
-}: ProductThumbProps) {
-  const [failed, setFailed] = useState(false);
+export function ProductThumb({ product, size = 'sm' }: ProductThumbProps) {
+  const [error, setError] = useState(false);
+  const dim = size === 'sm' ? 'h-14 w-14' : 'h-16 w-16';
+
+  if (error) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`flex ${dim} shrink-0 items-center justify-center bg-stone-100 font-display text-xs font-semibold uppercase tracking-wider text-stone-500`}
+      >
+        {product.brand.slice(0, 2)}
+      </div>
+    );
+  }
 
   return (
-    <div className={`shrink-0 overflow-hidden bg-stone-100 ${className}`}>
-      {failed ? (
-        <div className="flex h-full w-full items-center justify-center text-[9px] font-semibold uppercase tracking-widest text-stone-500">
-          {product.brand.slice(0, 2)}
-        </div>
-      ) : (
-        <img
-          src={imageSource(product.images[0], width)}
-          alt={product.name}
-          width={width}
-          height={height}
-          loading="lazy"
-          onError={() => setFailed(true)}
-          className={`h-full w-full object-cover object-center ${
-            zoomOnGroupHover
-              ? 'transition-transform duration-200 ease-out group-hover:scale-[1.04]'
-              : ''
-          }`}
-        />
-      )}
+    <div className={`${dim} shrink-0 overflow-hidden bg-stone-100`}>
+      <img
+        src={product.images[0]}
+        alt=""
+        width={112}
+        height={140}
+        loading="lazy"
+        onError={() => setError(true)}
+        className="h-full w-full object-cover object-center"
+      />
     </div>
   );
 }

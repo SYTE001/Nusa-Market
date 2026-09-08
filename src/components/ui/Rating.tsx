@@ -4,57 +4,39 @@ type RatingProps = {
   value: number;
   count?: number;
   size?: 'sm' | 'md';
-  /**
-   * Drops the numeric label below `sm`, where a two-column product card is too
-   * narrow to hold brand and rating on one line. The stars and the screen
-   * reader text stay.
-   */
+  className?: string;
   hideLabelOnMobile?: boolean;
 };
 
-export function Rating({ value, count, size = 'sm', hideLabelOnMobile = false }: RatingProps) {
-  const starSize = size === 'sm' ? 11 : 14;
+export function Rating({ value, count, size = 'sm', className = '', hideLabelOnMobile }: RatingProps) {
+  const iconSize = size === 'sm' ? 11 : 13;
   return (
-    <div className="flex shrink-0 items-center gap-1.5">
-      <div className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, i) => {
-          const filled = i < Math.floor(value);
-          const half = !filled && i < value;
-          return (
-            <div key={i} className="relative">
-              <Star
-                size={starSize}
-                className="text-stone-200"
-                fill="currentColor"
-                strokeWidth={1.5}
-              />
-              {(filled || half) && (
-                <div
-                  className="absolute inset-0 overflow-hidden"
-                  style={{ width: filled ? '100%' : '50%' }}
-                >
-                  <Star size={starSize} className="text-stone-800" fill="currentColor" strokeWidth={1.5} />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {/* One clean sentence for assistive tech, whatever the visual variant is. */}
-      <span className="sr-only">
-        Rated {value.toFixed(1)} out of 5
-        {count !== undefined ? ` from ${count} reviews` : ''}
+    <span
+      className={`inline-flex items-center gap-1 ${className}`}
+      aria-label={count !== undefined ? `Rated ${value} out of 5 from ${count} reviews` : `Rated ${value} out of 5`}
+    >
+      <span className="flex items-center gap-px" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            size={iconSize}
+            className={
+              i <= Math.round(value)
+                ? 'fill-clay-500 text-clay-500'
+                : 'fill-stone-200 text-stone-200'
+            }
+          />
+        ))}
       </span>
-
-      <span
-        aria-hidden="true"
-        className={`font-medium text-stone-600 ${size === 'sm' ? 'text-[11px]' : 'text-xs'} ${
-          hideLabelOnMobile ? 'hidden sm:inline' : ''
-        }`}
-      >
-        {value.toFixed(1)}
-        {count !== undefined && <span className="ml-1 font-normal text-stone-500">({count})</span>}
-      </span>
-    </div>
+      {count !== undefined && (
+        <span
+          className={`text-[10px] font-medium text-stone-500 tabular-nums ${
+            hideLabelOnMobile ? 'hidden xs:inline' : ''
+          }`}
+        >
+          ({count})
+        </span>
+      )}
+    </span>
   );
 }

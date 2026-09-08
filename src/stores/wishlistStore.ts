@@ -4,39 +4,36 @@ import type { Product } from '../types';
 
 type WishlistStore = {
   ids: string[];
+  items: Product[];
   toggleWishlist: (product: Product) => void;
-  addWishlist: (product: Product) => void;
-  removeWishlist: (productId: string) => void;
   isWishlisted: (productId: string) => boolean;
+  clearWishlist: () => void;
 };
 
 export const useWishlistStore = create<WishlistStore>()(
   persist(
     (set, get) => ({
       ids: [],
+      items: [],
 
       toggleWishlist(product) {
-        set((state) =>
-          state.ids.includes(product.id)
-            ? { ids: state.ids.filter((id) => id !== product.id) }
-            : { ids: [...state.ids, product.id] }
-        );
-      },
-
-      addWishlist(product) {
-        set((state) =>
-          state.ids.includes(product.id)
-            ? state
-            : { ids: [...state.ids, product.id] }
-        );
-      },
-
-      removeWishlist(productId) {
-        set((state) => ({ ids: state.ids.filter((id) => id !== productId) }));
+        set((state) => {
+          const exists = state.ids.includes(product.id);
+          return {
+            ids: exists ? state.ids.filter((id) => id !== product.id) : [...state.ids, product.id],
+            items: exists
+              ? state.items.filter((i) => i.id !== product.id)
+              : [...state.items, product],
+          };
+        });
       },
 
       isWishlisted(productId) {
         return get().ids.includes(productId);
+      },
+
+      clearWishlist() {
+        set({ ids: [], items: [] });
       },
     }),
     { name: 'nusa-wishlist' }

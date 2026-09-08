@@ -1,30 +1,29 @@
 import { useEffect } from 'react';
 
 /**
- * Locks body scroll while `active` is true.
- *
- * Reference counted, because more than one overlay can be mounted at a time
- * (cart drawer, search modal, mobile menu) and the last one to unmount must
- * not release a lock another overlay still needs. `scrollbar-gutter: stable`
- * on <html> keeps the layout from shifting when the scrollbar disappears.
+ * Ref-counted body scroll lock: two overlapping overlays (search modal over
+ * mobile menu) can never leave the page stuck when one of them closes.
  */
 let lockCount = 0;
-let previousOverflow = '';
 
 export function useScrollLock(active: boolean) {
   useEffect(() => {
     if (!active) return;
 
-    if (lockCount === 0) {
-      previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-    }
     lockCount += 1;
+    const overflow = document.body.style.overflow;
+    const paddingRight = document.body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbar > 0) {
+      document.body.style.paddingRight = `${scrollbar}px`;
+    }
 
     return () => {
       lockCount -= 1;
       if (lockCount === 0) {
-        document.body.style.overflow = previousOverflow;
+        document.body.style.overflow = overflow;
+        document.body.style.paddingRight = paddingRight;
       }
     };
   }, [active]);

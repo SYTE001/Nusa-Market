@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Truck, Check } from 'lucide-react';
 import { Drawer } from '../ui/Drawer';
-import { CartItem } from './CartItem';
+import { CartItemRow } from './CartItem';
 import { CartSummary } from './CartSummary';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
@@ -34,7 +34,7 @@ export function CartDrawer() {
         <EmptyState
           type="cart"
           action={{
-            label: 'Explore Catalog',
+            label: 'Explore the Collection',
             onClick: () => {
               closeCartDrawer();
               navigate('/shop');
@@ -46,23 +46,20 @@ export function CartDrawer() {
           {/* Free Shipping Progress Indicator */}
           <div className="bg-stone-50 border-b border-stone-200/80 px-6 py-3">
             <div className="flex items-center gap-2 text-xs text-stone-700 mb-1.5 font-medium">
-              <Truck size={14} className="text-stone-950" />
+              <Truck size={14} className="text-ink" />
               {remaining <= 0 ? (
-                <span className="text-emerald-700 flex items-center gap-1 font-semibold">
+                <span className="text-jade-700 flex items-center gap-1 font-semibold">
                   <Check size={13} /> You've unlocked Complimentary Domestic Shipping!
                 </span>
               ) : (
                 <span>
-                  Add <strong className="text-stone-950">{formatRupiah(remaining)}</strong> for Free Shipping
+                  Add <strong className="text-ink">{formatRupiah(remaining)}</strong> for Free Shipping
                 </span>
               )}
             </div>
             <div className="h-1.5 w-full bg-stone-200 rounded-full overflow-hidden">
               <div
-                /* Only the width ever changes here, and it belongs on the same
-                   500ms editorial curve as the other reveals rather than on a
-                   duration of its own. */
-                className="h-full rounded-full bg-stone-950 transition-[width] duration-500 ease-editorial"
+                className="h-full rounded-full bg-jade-600 transition-[width] duration-500 ease-editorial"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -71,7 +68,7 @@ export function CartDrawer() {
           {/* Item List */}
           <div className="flex-1 overflow-y-auto px-6 divide-y divide-stone-100">
             {items.map((item, i) => (
-              <CartItem
+              <CartItemRow
                 key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}-${i}`}
                 item={item}
               />

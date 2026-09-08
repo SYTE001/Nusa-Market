@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, X, ArrowUpDown } from 'lucide-react';
 import type { Product, FilterState } from '../types';
+import { REGIONS } from '../types';
 import { getProducts, filterBySearch } from '../services/productService';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -33,6 +34,11 @@ const SORT_OPTIONS: Option[] = [
   { label: 'Customer Rating', value: 'rating' },
 ];
 
+const REGION_OPTIONS: Option[] = [
+  { label: 'All Regions', value: 'all' },
+  ...REGIONS.map((r) => ({ label: r, value: r })),
+];
+
 function filterProducts(products: Product[], filters: FilterState): Product[] {
   let result = [...products];
 
@@ -44,6 +50,11 @@ function filterProducts(products: Product[], filters: FilterState): Product[] {
   // Category
   if (filters.category && filters.category.toLowerCase() !== 'all') {
     result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
+  }
+
+  // Region (archipelago filter)
+  if (filters.region && filters.region.toLowerCase() !== 'all') {
+    result = result.filter((p) => p.region.toLowerCase() === filters.region.toLowerCase());
   }
 
   // Price
@@ -82,8 +93,7 @@ export default function ShopPage() {
   const [error, setError] = useState(false);
 
   // The URL is user-editable and shareable. A value outside the offered set
-  // would filter nothing while still counting as active, leaving a pill with an
-  // empty label and a "Reset All" that appears to do nothing.
+  // would filter nothing while still counting as active.
   const filters = useMemo<FilterState>(() => {
     const fromOptions = (param: string, options: Option[], fallback: string) => {
       const raw = searchParams.get(param);
@@ -95,6 +105,7 @@ export default function ShopPage() {
       rating: fromOptions('rating', RATING_OPTIONS, 'all'),
       sort: fromOptions('sort', SORT_OPTIONS, 'featured'),
       search: searchParams.get('search') ?? '',
+      region: fromOptions('region', REGION_OPTIONS, 'all'),
     };
   }, [searchParams]);
 
@@ -108,15 +119,11 @@ export default function ShopPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // On mount the initial state already is the loading state, so there is
-  // nothing for the effect to set before the request goes out.
   useEffect(() => {
     fetchCatalog();
   }, [fetchCatalog]);
 
-  // Retry re-runs the service call rather than reloading the document, so the
-  // user keeps their filters, scroll position and cart drawer state. Unlike the
-  // first load it has to put the skeletons back itself.
+  // Retry re-runs the service call rather than reloading the document.
   const retry = useCallback(() => {
     setLoading(true);
     setError(false);
@@ -125,22 +132,22 @@ export default function ShopPage() {
 
   const filtered = useMemo(() => filterProducts(allProducts, filters), [allProducts, filters]);
 
-  // The URL is user-editable, so resolve whatever casing arrives back to the
-  // canonical catalog label before it reaches a heading or a pill.
+  // Canonical labels for headings and pills.
   const activeCategory =
     (categories as readonly string[]).find(
       (c) => c.toLowerCase() === filters.category.toLowerCase()
     ) ?? filters.category;
   const categoryIsAll = activeCategory.toLowerCase() === 'all' || activeCategory === '';
+  const activeRegion = filters.region;
 
-  // Mirrors the heading, so a tab parked on a filtered catalog still says what
-  // it is holding.
   useDocumentTitle(
     filters.search
       ? `Results for "${filters.search}" — NusaMarket`
-      : categoryIsAll
-      ? 'Catalog — NusaMarket'
-      : `${activeCategory} — NusaMarket`
+      : !categoryIsAll
+      ? `${activeCategory} — NusaMarket`
+      : activeRegion !== 'all'
+      ? `${activeRegion} — NusaMarket`
+      : 'Catalog — NusaMarket'
   );
 
   function setFilter(key: string, value: string) {
@@ -150,8 +157,6 @@ export default function ShopPage() {
     } else {
       next.set(key, value);
     }
-    // Re-picking the value that is already applied would otherwise push an
-    // identical history entry the user has to press Back through.
     if (next.toString() === searchParams.toString()) return;
     setSearchParams(next);
   }
@@ -165,22 +170,27 @@ export default function ShopPage() {
     filters.priceRange !== 'all' ||
     filters.rating !== 'all' ||
     filters.sort !== 'featured' ||
+    filters.region !== 'all' ||
     Boolean(filters.search);
 
+  const heading = filters.search
+    ? `Results for "${filters.search}"`
+    : !categoryIsAll
+    ? activeCategory
+    : activeRegion !== 'all'
+    ? `Made in ${activeRegion}`
+    : 'All Garments & Goods';
+
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       {/* Header */}
-      <div className="mb-8 border-b border-stone-200/80 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="mb-8 flex flex-col justify-between gap-4 border-b border-stone-200/80 pb-6 sm:flex-row sm:items-end">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             NusaMarket Catalog
           </span>
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-950 mt-1">
-            {filters.search
-              ? `Results for "${filters.search}"`
-              : categoryIsAll
-              ? 'All Garments & Goods'
-              : activeCategory}
+          <h1 className="font-display mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-4xl">
+            {heading}
           </h1>
         </div>
 
@@ -188,15 +198,16 @@ export default function ShopPage() {
           {error
             ? 'The catalog could not be loaded.'
             : loading
-              ? 'Loading catalog.'
-              : `${filtered.length} ${filtered.length === 1 ? 'piece' : 'pieces'} found.`}
+            ? 'Loading catalog.'
+            : `${filtered.length} ${filtered.length === 1 ? 'piece' : 'pieces'} found.`}
         </p>
 
         {!loading && !error && (
           <span className="text-xs font-medium text-stone-500">
-            Showing <strong className="font-semibold text-stone-950">{filtered.length}</strong>{' '}
+            Showing <strong className="font-semibold text-ink">{filtered.length}</strong>{' '}
             {filtered.length === 1 ? 'piece' : 'pieces'}
             {!categoryIsAll && !filters.search ? ` in ${activeCategory}` : ''}
+            {activeRegion !== 'all' && !filters.search ? ` from ${activeRegion}` : ''}
           </span>
         )}
       </div>
@@ -218,11 +229,39 @@ export default function ShopPage() {
                 aria-pressed={active}
                 className={`cursor-pointer whitespace-nowrap px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] transition-colors duration-150 ${
                   active
-                    ? 'bg-stone-950 text-stone-50 shadow-xs'
-                    : 'border border-stone-200/90 bg-white text-stone-600 hover:border-stone-400 hover:text-stone-950'
+                    ? 'bg-ink text-canvas shadow-xs'
+                    : 'border border-stone-200/90 bg-white text-stone-600 hover:border-stone-400 hover:text-ink'
                 }`}
               >
                 {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Region pills — the archipelago filter */}
+        <div
+          role="group"
+          aria-label="Filter by region"
+          className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none"
+        >
+          <span className="hidden shrink-0 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500 sm:inline">
+            Origin:
+          </span>
+          {REGION_OPTIONS.map((r) => {
+            const active = r.value === activeRegion;
+            return (
+              <button
+                key={r.value}
+                onClick={() => setFilter('region', r.value)}
+                aria-pressed={active}
+                className={`flex shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-150 ${
+                  active
+                    ? 'bg-clay-500 text-white shadow-xs'
+                    : 'border border-clay-200 bg-clay-50/50 text-clay-700 hover:border-clay-400'
+                }`}
+              >
+                {r.value === 'all' ? 'Every Island' : r.label}
               </button>
             );
           })}
@@ -232,11 +271,10 @@ export default function ShopPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <div className="flex flex-wrap items-center gap-2">
             <div className="mr-1 hidden items-center gap-1.5 text-xs text-stone-500 sm:flex">
-              <SlidersHorizontal size={14} />
+              <SlidersHorizontal size={14} aria-hidden="true" />
               <span className="text-[11px] font-semibold uppercase tracking-wider">Refine:</span>
             </div>
 
-            {/* Price Filter Dropdown */}
             <Dropdown
               options={PRICE_RANGES}
               value={filters.priceRange}
@@ -245,7 +283,6 @@ export default function ShopPage() {
               className="min-w-[155px]"
             />
 
-            {/* Rating Filter Dropdown */}
             <Dropdown
               options={RATING_OPTIONS}
               value={filters.rating}
@@ -258,7 +295,7 @@ export default function ShopPage() {
           {/* Sort Dropdown */}
           <div className="flex items-center gap-2">
             <div className="hidden items-center gap-1 text-xs text-stone-500 sm:flex">
-              <ArrowUpDown size={14} />
+              <ArrowUpDown size={14} aria-hidden="true" />
               <span className="text-[11px] font-semibold uppercase tracking-wider">Sort:</span>
             </div>
             <Dropdown
@@ -274,71 +311,53 @@ export default function ShopPage() {
 
         {/* Active filters pill list */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-200/60 text-xs">
+          <div className="flex flex-wrap items-center gap-2 border-t border-stone-200/60 pt-2 text-xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Active:</span>
             {!categoryIsAll && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
-                {activeCategory}
-                <button
-                  onClick={() => setFilter('category', 'All')}
-                  className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 hover:text-stone-900"
-                  aria-label={`Remove category filter ${activeCategory}`}
-                >
-                  <X size={12} />
-                </button>
-              </span>
+              <FilterPill
+                label={activeCategory}
+                onRemove={() => setFilter('category', 'All')}
+                ariaLabel={`Remove category filter ${activeCategory}`}
+              />
+            )}
+            {activeRegion !== 'all' && (
+              <FilterPill
+                label={activeRegion}
+                onRemove={() => setFilter('region', 'all')}
+                ariaLabel={`Remove region filter ${activeRegion}`}
+              />
             )}
             {filters.priceRange !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
-                {PRICE_RANGES.find((r) => r.value === filters.priceRange)?.label}
-                <button
-                  onClick={() => setFilter('price', 'all')}
-                  className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 hover:text-stone-900"
-                  aria-label="Remove price filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
+              <FilterPill
+                label={PRICE_RANGES.find((r) => r.value === filters.priceRange)?.label ?? ''}
+                onRemove={() => setFilter('price', 'all')}
+                ariaLabel="Remove price filter"
+              />
             )}
             {filters.rating !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
-                ★ {filters.rating}+ Stars
-                <button
-                  onClick={() => setFilter('rating', 'all')}
-                  className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 hover:text-stone-900"
-                  aria-label="Remove rating filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
+              <FilterPill
+                label={`★ ${filters.rating}+ Stars`}
+                onRemove={() => setFilter('rating', 'all')}
+                ariaLabel="Remove rating filter"
+              />
             )}
             {filters.search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
-                "{filters.search}"
-                <button
-                  onClick={() => setFilter('search', '')}
-                  className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 hover:text-stone-900"
-                  aria-label="Clear search term"
-                >
-                  <X size={12} />
-                </button>
-              </span>
+              <FilterPill
+                label={`"${filters.search}"`}
+                onRemove={() => setFilter('search', '')}
+                ariaLabel="Clear search term"
+              />
             )}
             {filters.sort !== 'featured' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
-                {SORT_OPTIONS.find((o) => o.value === filters.sort)?.label}
-                <button
-                  onClick={() => setFilter('sort', 'featured')}
-                  className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 hover:text-stone-900"
-                  aria-label="Reset sorting"
-                >
-                  <X size={12} />
-                </button>
-              </span>
+              <FilterPill
+                label={SORT_OPTIONS.find((o) => o.value === filters.sort)?.label ?? ''}
+                onRemove={() => setFilter('sort', 'featured')}
+                ariaLabel="Reset sorting"
+              />
             )}
             <button
               onClick={clearFilters}
-              className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 hover:text-stone-950 underline underline-offset-4 ml-1 cursor-pointer"
+              className="ml-1 cursor-pointer text-[11px] font-semibold uppercase tracking-wider text-stone-500 underline underline-offset-4 transition-colors duration-150 hover:text-ink"
             >
               Reset All
             </button>
@@ -368,5 +387,28 @@ export default function ShopPage() {
         <ProductGrid products={filtered} loading={loading} skeletonCount={8} />
       )}
     </div>
+  );
+}
+
+function FilterPill({
+  label,
+  onRemove,
+  ariaLabel,
+}: {
+  label: string;
+  onRemove: () => void;
+  ariaLabel: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1 border border-stone-200 bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-800">
+      {label}
+      <button
+        onClick={onRemove}
+        className="-my-1 -mr-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-xs text-stone-500 transition-colors duration-150 hover:text-stone-900"
+        aria-label={ariaLabel}
+      >
+        <X size={12} aria-hidden="true" />
+      </button>
+    </span>
   );
 }

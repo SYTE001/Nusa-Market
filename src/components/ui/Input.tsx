@@ -1,50 +1,50 @@
-import React, { useId } from 'react';
+import React, { forwardRef, useId } from 'react';
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
+type InputProps = {
+  label: string;
   error?: string;
   hint?: string;
-};
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'> & {
+    className?: string;
+  };
 
-export function Input({ label, error, hint, id, className = '', ...props }: InputProps) {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const messageId = `${inputId}-message`;
-  const showHint = !error && Boolean(hint);
+/**
+ * Labelled text input with the error message rendered beside its field.
+ */
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, error, hint, className = '', id, ...rest },
+  ref
+) {
+  const reactId = useId();
+  const inputId = id ?? reactId;
+  const errorId = `${inputId}-error`;
+  const hintId = `${inputId}-hint`;
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      {label && (
-        <label htmlFor={inputId} className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-600">
-          {label}
-        </label>
-      )}
+      <label htmlFor={inputId} className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700">
+        {label}
+      </label>
       <input
+        ref={ref}
         id={inputId}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error || showHint ? messageId : undefined}
-        {...props}
-        className={[
-          'h-10.5 w-full border bg-white px-3.5 text-sm text-stone-900 placeholder:text-stone-500',
-          'focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900',
-          'transition-all duration-150',
-          error
-            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-            : 'border-stone-200/90 hover:border-stone-400',
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        aria-describedby={[error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ') || undefined}
+        className={`h-10 w-full border bg-white px-3.5 text-sm text-ink placeholder:text-stone-400 outline-none transition-colors duration-150 focus:border-ink ${
+          error ? 'border-red-400' : 'border-stone-300'
+        }`}
+        {...rest}
       />
-      {error && (
-        <p id={messageId} className="text-[11px] font-medium text-red-600">
-          {error}
+      {hint && !error && (
+        <p id={hintId} className="text-[11px] text-stone-500">
+          {hint}
         </p>
       )}
-      {showHint && (
-        <p id={messageId} className="text-[11px] text-stone-500">
-          {hint}
+      {error && (
+        <p id={errorId} role="alert" className="text-[11px] font-medium text-red-600">
+          {error}
         </p>
       )}
     </div>
   );
-}
+});

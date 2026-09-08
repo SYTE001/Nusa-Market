@@ -2,15 +2,16 @@ import React from 'react';
 
 type BadgeProps = {
   children: React.ReactNode;
-  variant?: 'new' | 'sale' | 'bestseller' | 'featured';
+  variant?: 'new' | 'sale' | 'bestseller' | 'featured' | 'provenance';
   className?: string;
 };
 
 const variantMap: Record<string, string> = {
-  new: 'bg-stone-900 text-stone-50 border border-stone-800',
-  sale: 'bg-stone-50 text-stone-900 border border-stone-300 font-bold',
-  bestseller: 'bg-stone-100 text-stone-900 border border-stone-300/80',
+  new: 'bg-ink text-canvas border border-ink',
+  sale: 'bg-clay-50 text-clay-700 border border-clay-200 font-bold',
+  bestseller: 'bg-stone-100 text-ink border border-stone-300/80',
   featured: 'bg-stone-50 text-stone-700 border border-stone-200',
+  provenance: 'bg-gold-300/15 text-gold-600 border border-gold-300/60',
 };
 
 export function Badge({ children, variant = 'featured', className = '' }: BadgeProps) {

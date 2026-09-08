@@ -23,7 +23,7 @@ export function Footer() {
               02 · Transparent Sourcing
             </p>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Heavyweight organic cottons, natural French linens, and hand-printed artisanal batiks.
+              Hand-stamped batik, natural indigo, and heavyweight combed cotton — named ateliers on every product page.
             </p>
           </div>
           <div className="flex flex-col gap-1">
@@ -31,7 +31,7 @@ export function Footer() {
               03 · Express Domestic Dispatch
             </p>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Reliable door-to-door delivery across all 38 Indonesian provinces with hassle-free returns.
+              Door-to-door delivery across all 38 Indonesian provinces with hassle-free exchanges.
             </p>
           </div>
         </div>
@@ -43,29 +43,29 @@ export function Footer() {
           <div className="lg:col-span-2 flex flex-col gap-4">
             <Link
               to="/"
-              className="text-sm font-bold uppercase tracking-[0.24em] text-stone-950 inline-block"
+              className="font-display text-sm font-semibold uppercase tracking-[0.24em] text-ink inline-block"
             >
-              NusaMarket
+              Nusa<span className="text-clay-600">Market</span>
             </Link>
             <p className="text-xs text-stone-500 leading-relaxed max-w-sm">
-              An editorial commerce platform dedicated to championing contemporary Indonesian craftsmanship, streetwear, and elevated everyday essentials.
+              An editorial commerce platform dedicated to contemporary Indonesian craftsmanship — hand-stamped batik, natural-dye tenun, and heavyweight cut-and-sew.
             </p>
             <div className="pt-2 flex items-center gap-4 text-xs text-stone-500">
-              <span>Jakarta</span>
+              <span>Pekalongan</span>
               <span>·</span>
               <span>Bandung</span>
               <span>·</span>
               <span>Yogyakarta</span>
               <span>·</span>
-              <span>Bali</span>
+              <span>Sidemen</span>
+              <span>·</span>
+              <span>Sumba</span>
             </div>
           </div>
 
           {/* Directory Links */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-950 mb-4">
-              Catalog
-            </h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink mb-4">Catalog</h3>
             <ul className="flex flex-col gap-2.5">
               {[
                 { label: 'T-Shirts & Tops', cat: 'T-Shirts' },
@@ -78,7 +78,7 @@ export function Footer() {
                 <li key={item.cat}>
                   <Link
                     to={`/shop?category=${encodeURIComponent(item.cat)}`}
-                    className="text-xs text-stone-600 hover:text-stone-950 transition-colors duration-150"
+                    className="text-xs text-stone-600 hover:text-ink transition-colors duration-150"
                   >
                     {item.label}
                   </Link>
@@ -87,24 +87,22 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Discover - every entry resolves to a route that exists */}
+          {/* Discover — every entry resolves to a route that exists */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-950 mb-4">
-              Discover
-            </h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink mb-4">Discover</h3>
             <ul className="flex flex-col gap-2.5">
               {[
                 { label: 'New Arrivals', to: '/shop?sort=newest' },
                 { label: 'Highest Rated', to: '/shop?sort=rating' },
-                { label: 'Rp 100.000 – Rp 250.000', to: '/shop?price=100-250' },
-                { label: 'Collections', to: '/#collections' },
-                { label: 'Our Story', to: '/#about' },
+                { label: 'The Craft (Journal)', to: '/journal' },
+                { label: 'Case Study', to: '/case-study' },
+                { label: 'Design System', to: '/design-system' },
                 { label: 'Saved Pieces', to: '/wishlist' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
                     to={item.to}
-                    className="text-xs text-stone-600 hover:text-stone-950 transition-colors duration-150"
+                    className="text-xs text-stone-600 hover:text-ink transition-colors duration-150"
                   >
                     {item.label}
                   </Link>
@@ -115,11 +113,9 @@ export function Footer() {
 
           {/* Newsletter */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-950">
-              The Dispatch
-            </h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink">The Dispatch</h3>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Early release access, archival restocks, and brand documentaries.
+              Early release access, artisan field notes, and restock announcements.
             </p>
             <NewsletterForm className="mt-1" />
           </div>

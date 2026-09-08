@@ -1,1393 +1,157 @@
-# NusaMarket — AI Coding Agent Plan
+# Nusa Market — Portfolio Upgrade Plan
 
-## 0. ROLE
+> **Tujuan akhir:** Bukan sekadar web yang jalan, tapi sebuah case study yang meyakinkan recruiter/klien bahwa kamu bisa berpikir strategis, mengeksekusi dengan taste, dan mendokumentasikan hasil kerja secara profesional.
 
-You are the primary coding agent responsible for implementing the entire NusaMarket ecommerce frontend from start to finish.
-
-Your job is to:
-- write all production-ready code
-- create and organize all required files
-- install and configure dependencies
-- implement all pages
-- implement all components
-- implement state management
-- implement mock product data
-- implement validation
-- implement responsive behavior
-- implement loading, empty, and error states
-- fix bugs
-- run checks
-- refactor when necessary
-- keep the project deployable
-
-The human is responsible for decisions and tasks outside coding.
-
-DO NOT ask the human to manually code anything.
+> **STATUS: EXECUTED — 8 Sep 2026.** Semua fase selesai (adaptasi stack: proyek ini Vite SPA,
+> bukan Next.js — keputusan tertulis di halaman /case-study). Lighthouse desktop:
+> Home 97/96/100/92 · Shop 99/94 · PDP 98/93 · Case Study 98/100 (CLS 0.293 → 0.003).
 
 ---
 
-# 1. PRODUCT
+## Phase 1 — High Impact (Lakukan Duluan)
 
-## Project Name
-
-NusaMarket
-
-## Positioning
-
-Modern ecommerce storefront for Indonesian local brands.
-
-Primary demo niche:
-
-Local fashion / streetwear.
-
-The architecture must remain reusable for:
-- fashion
-- skincare
-- coffee
-- accessories
-- digital products
-
-The UI should feel like a real ecommerce product, not a coding demo.
+Urutan ini dipilih karena perubahan di sini paling terlihat, paling mudah diargumentasikan, dan langsung mengangkat persepsi terhadap keseluruhan proyek.
 
 ---
 
-# 2. PRIMARY GOAL
+### 1.1 — Brand Storytelling & Artisan Stories Section ✅
 
-Build a complete frontend ecommerce experience.
+**Kenapa ini dulu:**
+Tanpa soul, web ini cuma toko. Ini yang membedakan Nusa Market dari clone Tokopedia generik.
 
-The final application must support this complete flow:
+**Yang dikerjakan:**
 
-Home
-→ Shop
-→ Search / Filter
-→ Product Detail
-→ Wishlist
-→ Add to Cart
-→ Cart Drawer
-→ Full Cart
-→ Checkout
-→ Order Confirmation
+- [x] Tulis ulang tagline → *"Handwoven batik from Pekalongan. Carved teak from Jepara. Shipped worldwide."* (konkret, 3 baris, sesuai hero)
+- [x] Section **"Stories from the Archipelago"** — 5 artisan profile (Ratna Tamtama/Pekalongan, Pak Darto/Bandung, Lilis Sari/Bandung, Ni Made Widya/Sidemen-Bali, Yosef Ndiki/Sumba), data typed di `src/data/artisans.ts`
+  - Layout editorial alternating (full-bleed portrait ↔ teks, flip tiap baris), bukan card grid
+  - Placeholder foto deterministik (studio tile per-artisan, on-brand) — tidak kosong
+- [x] Elemen budaya subtle:
+  - Batik kawung weave sebagai background 5% opacity (`batik-weave` utility)
+  - Tenun strip sebagai section divider (`motif-divider` utility)
+  - `clay/terracotta` (#c1440e) sebagai secondary accent, **paired** dengan ink — emerald tetap utk status
 
-Every step must work without dead-end UI.
-
----
-
-# 3. HUMAN RESPONSIBILITIES
-
-The human handles:
-
-- final brand direction
-- final logo
-- final product photos if desired
-- final marketing copy approval
-- final visual review
-- domain
-- Vercel account
-- GitHub account
-- production credentials
-- real payment provider
-- real backend infrastructure if needed
-- final deployment approval
-
-The agent must still create the application so that the above can be connected later.
-
-Do not block development waiting for these items.
-
-Use placeholders / dummy assets where necessary.
+**Output:** Orang bisa merasakan *kenapa* Nusa Market ada — terlihat di homepage sebelum fold pertama.
 
 ---
 
-# 4. AGENT RESPONSIBILITIES
+### 1.2 — Copywriting Audit Seluruh Web ✅
 
-The agent owns all coding work.
-
-This includes:
-
-- project setup
-- architecture
-- dependencies
-- components
-- routes
-- pages
-- Zustand stores
-- product data
-- utility functions
-- form validation
-- filtering
-- search
-- sorting
-- cart logic
-- wishlist logic
-- checkout logic
-- responsive behavior
-- UI states
-- accessibility basics
-- loading states
-- error handling
-- code quality
-- build verification
+- [x] Hero headline konkret: *"Handwoven batik from Pekalongan. Carved teak from Jepara. Shipped worldwide."*
+- [x] Product descriptions: semua 24 produk punya `craft.material` + `craft.process` + `craft.atelier` + `craft.story` (konteks asal, material, proses — paragraf penuh, bukan satu kalimat)
+- [x] CTA buttons: *"Shop Collection"* → *"Explore the Collection"*, *"See the Craft"*, *"Explore the Archive"*
+- [x] Footer & nav labels diaudit: menu **"The Craft"** (Journal) ditambahkan, footer link semua resolve ke route nyata (+ Case Study, Design System)
+- [x] Meta title & description SEO-ready: *"NusaMarket — Handcrafted in Indonesia, Shipped Worldwide"* + OG/Twitter cards lengkap
 
 ---
 
-# 5. TECH STACK
+### 1.3 — Hero + Typography Refinement ✅
 
-Use:
+**Typography:**
 
-- React
-- TypeScript
-- Tailwind CSS
-- React Router or framework routing appropriate to the selected project setup
-- Zustand
-- React Hook Form
-- Zod
-- Fetch API or TanStack Query
-- Lucide React for icons
-- Vercel-compatible setup
+- [x] Heading → **Clash Display** (Fontshare) — geometric, modern, karakter kuat
+- [x] Pair dengan serif elegan → **Cormorant Garamond** italic utk quote artisan & editorial lines
+- [x] Body → **Satoshi**; data/harga → **JetBrains Mono** tabular
+- [x] Type scale hierarki jelas: display vs serif-italic vs body vs mono (terdokumentasi di /design-system)
 
-Prefer a modern TypeScript architecture.
+**Hero Section:**
 
-Avoid unnecessary dependencies.
-
-If the repository already has a framework configured, preserve the existing architecture unless there is a strong technical reason to change it.
+- [x] Cinematic: **Ken Burns effect** (18s settle) + film grain overlay 6% (SVG turbulence)
+- [x] Secondary CTA **"Watch the Craft"** → modal film placeholder (poster frame + caption Ibu Ratna, jujur bahwa footage masih dipotong)
+- [x] Hero copy ≤ 2 baris headline + 1 subtext + 2 CTA (plus text-CTA Watch the Craft)
 
 ---
 
-# 6. DEVELOPMENT PRINCIPLES
+### 1.4 — Case Study Page ✅
 
-## 6.1 Production mindset
+Dibuat di `/case-study` (route nyata di app ini), struktur lengkap:
 
-Do not build throwaway demo code.
+- [x] Overview — problem statement (provenance hilang di marketplace generik) + objective terukur
+- [x] Research — kompetitor (Etsy, Tokopedia Premium, Aesop, Studio Nicholson) + target audience + 2 key insight
+- [x] Brand & Design Direction — color system reasoning (ink+clay, emerald=demoted ke status), typography alasannya, texture sebagai material
+- [x] Technical Decisions — kenapa **Vite SPA bukan Next.js** (keputusan jujur + reasoning), provenance di type system, state by lifetime, optimistic motion + reduced-motion
+- [x] Challenges & Solutions — 3 challenge nyata: header height sync, overlay lifecycle, placeholder imagery pipeline
+- [x] Results & Learnings — Lighthouse numbers nyata, apa yang dilakukan berbeda, apa yang outperform (atelier di cart row)
 
-Code should be:
-- reusable
-- readable
-- typed
-- modular
-- maintainable
-- responsive
-- accessible
-- easy to extend
-
-## 6.2 Component reuse
-
-Do not duplicate UI.
-
-Prefer reusable components such as:
-
-- Button
-- Input
-- Badge
-- Rating
-- ProductCard
-- ProductGrid
-- ProductGallery
-- QuantitySelector
-- CartItem
-- CartSummary
-- Modal
-- Drawer
-- EmptyState
-- ErrorState
-- Skeleton
-
-## 6.3 Avoid overengineering
-
-Do not introduce:
-- unnecessary abstractions
-- unnecessary backend services
-- unnecessary libraries
-- complex architecture for simple features
-
-Use the simplest architecture that supports future expansion.
+**Format:** Ditulis sebagai engineering blog post — narasi, pull-quotes, bukan bullet kering.
 
 ---
 
-# 7. EXPECTED PROJECT STRUCTURE
+## Phase 2 — Visual & Interaction Polish ✅
 
-Prefer:
+### 2.1 — Framer Motion Interactions ✅
 
-src/
-├── app/
-├── components/
-│   ├── ui/
-│   ├── layout/
-│   ├── product/
-│   ├── cart/
-│   ├── checkout/
-│   └── sections/
-├── data/
-├── stores/
-├── services/
-├── hooks/
-├── types/
-├── lib/
-└── utils/
+- [x] **Fly-to-cart animation** — ghost chip clay terbang dari tombol add → bag icon (target live position, update saat scroll), badge bounce saat landing, drawer buka setelah flight
+- [x] **Product card hover** — image zoom 1.05 dalam card (overflow hidden), region overlay fade-in (MapPin + atelier city)
+- [x] **Cart drawer** — spring physics (stiffness 300 / damping 34), bukan easing linear
+- [x] **Scroll-triggered animations** — artisan articles fade-rise saat masuk viewport (once), product grid stagger 0.05s
+- [x] **Magnetic buttons** — hero CTA + Add to Bag utama (spring lean mengikuti kursor, disabled di touch/reduced-motion)
 
-Adapt this to the actual repository if necessary.
+**Technical note:** ✅ `useReducedMotion` dipakai di semua layer motion + global CSS collapse — disebut di case study.
 
-Do not force this structure if the existing codebase already has a better consistent architecture.
+### 2.2 — Visual System Polish ✅
+
+- [x] **Color system** formal di `@theme` CSS variables: ink (primary), clay/terracotta (accent), warm canvas (neutral), gold (provenance), emerald→jade (status only)
+- [x] **Spacing**: 4px base konsisten (Tailwind scale default, audit visual via /design-system)
+- [x] **Imagery**: 85 placeholder konsisten style (studio tile deterministik per brand — satu sistem, bukan stock photo acak); script `npm run images` regeneratable, real foto auto-prioritas
+- [x] **Dark mode**: dipertimbangkan dan **diparking dengan reasoning** — base warm-light adalah bagian dari thesis editorial (cream = cotton undyed); dicatat di case study sebagai opsi lanjutan
 
 ---
 
-# 8. DATA MODEL
+## Phase 3 — Technical Depth & Features ✅
 
-Create strongly typed product data.
+### 3.1 — UX Feature Upgrades ✅
 
-Recommended shape:
+- [x] **Advanced filtering by region** (Sumatra, Java, Bali, Nusa Tenggara, + Kalimantan/Sulawesi di tipe) + URL query params `?region=Bali` (shareable/bookmarkable, back-button-safe)
+- [x] **Wishlist**: persist localStorage + heart-pop animation + halaman dengan Add to Bag per item
+- [x] **Loading states**: skeleton mengikuti shape konten (grid 4:5, PDP gallery 3:4 + meta rows)
+- [x] **Empty states**: 5 varian on-brand (cart/wishlist/search/filter/error) dengan copywriting mengarahkan aksi
+- [x] **Product detail tabs**: *Craft Story* (deskripsi serif-italic + story + process) / *Origin* (atelier, region, link filter) / *Material & Care*
 
-```ts
-type Product = {
-  id: string
-  slug: string
-  brand: string
-  name: string
-  category: string
-  price: number
-  originalPrice?: number
-  rating: number
-  reviewCount: number
-  images: string[]
-  description: string
-  sizes?: string[]
-  colors?: string[]
-  stock: number
-  featured?: boolean
-  isNew?: boolean
-  isBestSeller?: boolean
-}
+### 3.2 — Technical Portfolio Value ✅
+
+- [ ] ~~Server Actions untuk cart~~ → **adaptasi jujur**: stack adalah Vite SPA; case study menuliskan reasoning keputusan ini eksplisit (Server Component tanpa server = dependency, bukan fitur). Seam `productService.ts` siap ditukar ke API/Server Actions tanpa perubahan halaman.
+- [x] **Simple admin dashboard** — `/admin` protected route (passcode gate `nusa2026`, session-scoped, pattern documented): stat strip, search, region filter, catalog table dengan stock states, atelier ledger
+- [x] **Lighthouse score** — didokumentasikan sebelum/sesudah optimasi: 38→**97** (home perf), CLS 0.293→**0.003** (perbaikan: opacity-only reveal + min-h-dvh main)
+- [x] **Design System documentation** — `/design-system`: color tokens + meaning, type scale live, texture & motion scale, component inventory interaktif
+
+---
+
+## Navigation Enhancement (Cross-phase) ✅
+
+- [x] Navbar transparent-ish di hero (canvas/80 blur) → solid saat scroll (border+shadow transition smooth)
+- [x] Menu item **"The Craft"** → `/journal` — 3 artikel pendek nyata (batik, tenun, weight test)
+- [x] Mobile nav: panel full-screen dengan focus management + Escape + auto-close di breakpoint `lg`
+
+---
+
+## Ringkasan Prioritas
+
+| # | Task | Impact | Effort | Phase | Status |
+|---|------|--------|--------|-------|--------|
+| 1 | Artisan Stories section | Tinggi | Sedang | 1 | ✅ |
+| 2 | Copywriting audit | Tinggi | Rendah | 1 | ✅ |
+| 3 | Hero + Typography | Tinggi | Sedang | 1 | ✅ |
+| 4 | Case Study page | Sangat Tinggi | Tinggi | 1 | ✅ |
+| 5 | Fly-to-cart animation | Tinggi | Sedang | 2 | ✅ |
+| 6 | Product card hover | Sedang | Rendah | 2 | ✅ |
+| 7 | Color system formalisasi | Sedang | Rendah | 2 | ✅ |
+| 8 | Advanced filtering | Sedang | Sedang | 3 | ✅ |
+| 9 | Server Actions cart | Sedang | Tinggi | 3 | ↩️ adaptasi Vite SPA (reasoning di case study) |
+| 10 | Admin dashboard | Rendah | Tinggi | 3 | ✅ |
+| 11 | Lighthouse optimasi | Sedang | Sedang | 3 | ✅ 97–99 perf |
+
+---
+
+## Catatan Akhir
+
+Case study adalah deliverable paling penting dari semua ini — dan sekarang ada di `/case-study`,
+ditulis paralel sambil mengerjakan setiap phase (sesuai saran: *"Jangan tunggu semua selesai dulu baru tulis case study"*).
+
+**Urutan kerja yang terjadi:**
+```
+Copy → Story → Hero → Case Study → Interactions → Polish → Technical → QA → Lighthouse → Dokumentasi
 ```
 
-Create at least 24 realistic dummy products.
-
-Categories:
-
-- T-Shirts
-- Hoodies
-- Pants
-- Jackets
-- Accessories
-- Bags
-
-Use realistic Indonesian Rupiah pricing.
-
-Keep all dummy data centralized.
-
-Do not hardcode product data directly inside components.
-
----
-
-# 9. PAGES
-
-Implement all of these pages.
-
-## Homepage
-
-Route:
-
-`/`
-
-Sections:
-
-1. Navbar
-2. Hero
-3. Featured categories
-4. New arrivals
-5. Promotional banner
-6. Best sellers
-7. Brand story
-8. Newsletter
-9. Footer
-
-Hero copy:
-
-"Made Local. Made Better."
-
-Supporting copy:
-
-"Discover thoughtfully designed products from independent Indonesian brands."
-
-Primary CTA:
-
-"Shop Collection"
-
-Secondary CTA:
-
-"Explore New Arrivals"
-
----
-
-## Shop
-
-Route:
-
-`/shop`
-
-Requirements:
-
-- product grid
-- search
-- category filter
-- price filter
-- rating filter
-- sorting
-- result count
-- responsive layout
-- loading state
-- empty state
-- error state
-
-Desktop:
-4 columns
-
-Tablet:
-3 columns
-
-Mobile:
-2 columns
-
----
-
-## Product Detail
-
-Route:
-
-`/product/:slug`
-
-Requirements:
-
-- image gallery
-- thumbnails
-- product name
-- brand
-- rating
-- price
-- original price
-- description
-- sizes
-- colors
-- quantity selector
-- stock status
-- add to cart
-- wishlist
-- product information
-- shipping / returns
-- reviews
-- related products
-
-If product supports no size selection, do not render irrelevant size controls.
-
----
-
-## Wishlist
-
-Route:
-
-`/wishlist`
-
-Requirements:
-
-- saved products
-- remove item
-- add to cart
-- empty state
-
----
-
-## Cart
-
-Route:
-
-`/cart`
-
-Requirements:
-
-- cart items
-- quantity controls
-- remove item
-- subtotal
-- shipping
-- total
-- checkout CTA
-- empty state
-
-Also create a cart drawer.
-
----
-
-## Checkout
-
-Route:
-
-`/checkout`
-
-Requirements:
-
-Contact information:
-- name
-- email
-- phone
-
-Shipping:
-- address
-- city
-- province
-- postal code
-
-Shipping method:
-- regular
-- express
-
-Payment:
-- bank transfer
-- e-wallet
-- COD
-
-Order summary.
-
-Use React Hook Form + Zod validation.
-
----
-
-## Order Success
-
-Route:
-
-`/order/success`
-
-Requirements:
-
-- confirmation icon
-- order number
-- total
-- order summary
-- continue shopping button
-
-Generate a deterministic-looking dummy order number.
-
-Example:
-
-`#NM-20260829`
-
-Do not create a real payment transaction.
-
----
-
-## Search
-
-Search should be available through the global navigation.
-
-Support:
-- keyword matching
-- product name
-- brand
-- category
-
-Search UI should work on:
-- desktop
-- tablet
-- mobile
-
----
-
-# 10. NAVIGATION
-
-Desktop:
-
-NusaMarket
-
-Shop
-New Arrivals
-Collections
-About
-
-Search
-Wishlist
-Bag
-
-Mobile:
-
-Menu
-Logo
-Bag
-
-Implement:
-
-- mobile navigation
-- search overlay
-- wishlist counter
-- cart counter
-
-Counters must update reactively.
-
----
-
-# 11. STATE MANAGEMENT
-
-Use Zustand.
-
-Create separate stores where useful.
-
-Recommended:
-
-`cartStore`
-
-Methods:
-
-- addItem
-- removeItem
-- increaseQuantity
-- decreaseQuantity
-- updateQuantity
-- clearCart
-
-Computed / selectors:
-
-- totalItems
-- subtotal
-
-`wishlistStore`
-
-Methods:
-
-- toggleWishlist
-- addWishlist
-- removeWishlist
-- isWishlisted
-
-`uiStore`
-
-State:
-
-- cart drawer
-- mobile menu
-- search overlay
-
-Persist cart and wishlist to localStorage.
-
-Do not persist unnecessary UI state.
-
----
-
-# 12. CART BEHAVIOR
-
-When the user clicks Add to Cart:
-
-1. add item
-2. update quantity if item already exists
-3. open cart drawer
-4. update cart counter
-5. show lightweight feedback
-
-Quantity behavior:
-
-- minimum = 1
-- increasing quantity must respect stock
-- removing item at quantity 1 must work
-- zero quantity should remove item if supported through updateQuantity
-
-Cart calculations must be centralized.
-
-Never duplicate subtotal calculation logic across components.
-
----
-
-# 13. WISHLIST BEHAVIOR
-
-Wishlist icon:
-
-not saved:
-`♡`
-
-saved:
-filled heart icon
-
-User can toggle wishlist from:
-- Product Card
-- Product Detail
-
-Persist wishlist.
-
----
-
-# 14. FILTERING
-
-Support:
-
-Category:
-- All
-- T-Shirts
-- Hoodies
-- Pants
-- Jackets
-- Accessories
-- Bags
-
-Price:
-
-- Under Rp100K
-- Rp100K–250K
-- Rp250K–500K
-- Above Rp500K
-
-Rating:
-- 4+
-- 4.5+
-
-Sort:
-
-- Featured
-- Newest
-- Price Low → High
-- Price High → Low
-- Rating
-
-Use URL query parameters when appropriate.
-
-Example:
-
-`/shop?category=hoodies&sort=price-low`
-
-Refreshing the page must preserve filters.
-
----
-
-# 15. PRODUCT SEARCH
-
-Search should support partial matching.
-
-Example:
-query:
-`hood`
-
-Possible results:
-- Heavyweight Hoodie
-- Essential Hoodie
-- Zip Hoodie
-
-Search should be case-insensitive.
-
-No result:
-
-"0 products found"
-
-Show an appropriate empty state.
-
----
-
-# 16. LOADING STATES
-
-Do not rely only on spinners.
-
-Implement skeletons that match the target layout.
-
-Product skeleton should resemble:
-
-image
-title
-price
-rating
-
-Use skeletons for:
-- product grid
-- product detail
-- search results where useful
-
----
-
-# 17. EMPTY STATES
-
-Implement:
-
-Cart empty:
-
-"Your bag is empty."
-
-CTA:
-"Continue Shopping"
-
-Wishlist empty:
-
-"Nothing saved yet."
-
-Search empty:
-
-"No products found."
-
-Filter empty:
-
-"No products match your filters."
-
-Every empty state must have a useful CTA when appropriate.
-
----
-
-# 18. ERROR STATES
-
-Implement human-readable errors.
-
-Example:
-
-"Something went wrong."
-
-"We couldn't load the products."
-
-CTA:
-
-"Try Again"
-
-Never expose raw stack traces to users.
-
----
-
-# 19. RESPONSIVE DESIGN
-
-Mobile-first.
-
-Target:
-
-Mobile:
-< 640px
-
-Tablet:
-640–1024px
-
-Desktop:
-> 1024px
-
-Must test:
-
-- 360px
-- 390px
-- 768px
-- 1024px
-- 1280px
-- 1440px
-
-Do not allow:
-- horizontal overflow
-- broken grids
-- text clipping
-- unusable buttons
-- overlapping fixed elements
-
----
-
-# 20. MOBILE UX
-
-Important mobile behaviors:
-
-- mobile menu
-- full-screen or drawer search
-- 2-column product grid
-- sticky add-to-cart CTA on product detail
-- thumb-friendly buttons
-- responsive checkout form
-- accessible drawer behavior
-
-Sticky CTA example:
-
-`Rp249.000    [Add to Bag]`
-
----
-
-# 21. DESIGN SYSTEM
-
-Visual direction:
-
-- modern
-- premium
-- minimal
-- editorial ecommerce
-- local-brand feel
-- clean whitespace
-- strong typography
-- subtle borders
-- subtle shadows
-- restrained animation
-
-Do not create:
-- excessive gradients
-- excessive glassmorphism
-- excessive rounded cards
-- noisy backgrounds
-- unnecessary animations
-
-Use one accent color.
-
-Keep hierarchy strong.
-
----
-
-# 22. TYPOGRAPHY
-
-Use a modern sans-serif.
-
-Recommended:
-
-Inter
-
-Use consistent hierarchy:
-
-- display
-- h1
-- h2
-- h3
-- body
-- caption
-- label
-
-Do not use too many font sizes.
-
----
-
-# 23. IMAGES
-
-Use stable dummy image sources or local assets.
-
-The application must still function if remote images fail.
-
-Always include:
-
-- image dimensions
-- alt text
-- sensible object-fit behavior
-
-Product gallery should preserve image proportions.
-
----
-
-# 24. ACCESSIBILITY
-
-Implement basic accessibility.
-
-Required:
-
-- semantic buttons
-- labels for inputs
-- alt text
-- keyboard focus
-- visible focus states
-- accessible drawer controls
-- aria labels where needed
-- adequate touch target size
-- color contrast
-
-Do not make clickable divs when a button or link is appropriate.
-
----
-
-# 25. ANIMATIONS
-
-Use subtle animations only.
-
-Examples:
-
-- product hover
-- drawer opening
-- favorite icon transition
-- button feedback
-- image transitions
-
-Avoid animation that slows down navigation.
-
-Respect reduced-motion preferences where practical.
-
----
-
-# 26. SERVICES / DATA ACCESS
-
-Create a simple service layer.
-
-Example:
-
-`services/productService.ts`
-
-Functions:
-
-- getProducts
-- getProductBySlug
-- searchProducts
-
-Initially the service can use local TypeScript data.
-
-Structure it so a real API can replace the implementation later without rewriting the UI.
-
----
-
-# 27. FUTURE API COMPATIBILITY
-
-Do not build a backend now.
-
-Do not add:
-- real authentication
-- real payments
-- real order database
-- admin dashboard
-- inventory backend
-
-The architecture only needs to remain compatible with future backend integration.
-
----
-
-# 28. FORM VALIDATION
-
-Use React Hook Form + Zod.
-
-Validate:
-
-Name:
-required
-
-Email:
-valid email
-
-Phone:
-required
-
-Address:
-required
-
-City:
-required
-
-Province:
-required
-
-Postal Code:
-required and numeric
-
-Shipping method:
-required
-
-Payment method:
-required
-
-Errors must appear near the relevant fields.
-
----
-
-# 29. CHECKOUT FLOW
-
-Submission:
-
-1. validate
-2. disable submit during processing
-3. simulate short async submission
-4. create dummy order
-5. clear cart
-6. redirect to success page
-
-Do not create fake payment APIs unnecessarily.
-
----
-
-# 30. ORDER SUCCESS
-
-Generate:
-
-- order ID
-- order date
-- purchased items
-- total
-- selected shipping method
-- selected payment method
-
-Keep the data local.
-
-No backend required.
-
----
-
-# 31. PERFORMANCE
-
-Avoid unnecessary re-renders.
-
-Use:
-
-- memoization only when justified
-- image lazy loading where appropriate
-- reusable selectors
-- optimized data access
-- minimal dependencies
-
-Do not prematurely optimize.
-
-Prioritize correctness first.
-
----
-
-# 32. CODE QUALITY
-
-Use TypeScript strictly.
-
-Avoid:
-
-```ts
-any
-```
-
-unless there is a genuine unavoidable reason.
-
-Prefer explicit types.
-
-Do not leave:
-
-- console errors
-- unused imports
-- dead code
-- broken routes
-- TODOs for core functionality
-- fake buttons that do nothing
-
----
-
-# 33. ERROR HANDLING
-
-Every interactive feature must have defined behavior.
-
-Examples:
-
-Add to cart:
-works
-
-Wishlist:
-works
-
-Search:
-works
-
-Filter:
-works
-
-Sorting:
-works
-
-Checkout:
-validated
-
-Empty cart:
-handled
-
-Empty wishlist:
-handled
-
-No search result:
-handled
-
-Image failure:
-handled reasonably
-
----
-
-# 34. TESTING CHECKLIST
-
-Before considering the project complete, manually verify:
-
-## Navigation
-
-- home works
-- shop works
-- product links work
-- wishlist works
-- cart works
-- checkout works
-- success page works
-
-## Products
-
-- all products render
-- product detail works
-- image gallery works
-- related products work
-
-## Search
-
-- search works
-- search with no results works
-
-## Filters
-
-- category works
-- price works
-- rating works
-- sorting works
-- URL state works if implemented
-
-## Cart
-
-- add product
-- add same product again
-- increase quantity
-- decrease quantity
-- remove product
-- clear cart
-- subtotal calculation
-
-## Wishlist
-
-- add
-- remove
-- persistence
-
-## Checkout
-
-- validation
-- submit
-- success redirect
-- cart clear
-
-## Responsive
-
-test all target widths.
-
----
-
-# 35. BUILD VERIFICATION
-
-Before finishing:
-
-Run the appropriate commands for the project:
-
-- install dependencies
-- typecheck
-- lint
-- build
-
-Fix every blocking error.
-
-Final project should successfully build for production.
-
----
-
-# 36. GIT HYGIENE
-
-Keep commits logical when Git is available.
-
-Suggested commits:
-
-1. `chore: setup project`
-2. `feat: build design system`
-3. `feat: add product catalog`
-4. `feat: add product detail`
-5. `feat: add cart and wishlist`
-6. `feat: add checkout flow`
-7. `feat: polish responsive ux`
-8. `fix: resolve final issues`
-
-Do not commit secrets.
-
-Do not create `.env` values containing credentials.
-
----
-
-# 37. DEVELOPMENT ORDER
-
-Follow this implementation order.
-
-## Phase 1 — Foundation
-
-1. inspect repository
-2. understand existing setup
-3. install missing dependencies
-4. configure TypeScript
-5. configure Tailwind
-6. establish design tokens
-7. establish folder structure
-8. build base layout
-
-## Phase 2 — Global UI
-
-9. navbar
-10. mobile menu
-11. search overlay
-12. footer
-13. reusable UI primitives
-
-## Phase 3 — Product System
-
-14. product types
-15. product data
-16. product service
-17. product card
-18. product grid
-19. product detail
-20. related products
-
-## Phase 4 — Catalog UX
-
-21. search
-22. filters
-23. sorting
-24. URL state
-25. empty states
-26. loading states
-27. error states
-
-## Phase 5 — Commerce UX
-
-28. Zustand cart store
-29. Zustand wishlist store
-30. cart drawer
-31. full cart
-32. quantity control
-33. wishlist page
-
-## Phase 6 — Checkout
-
-34. checkout form
-35. Zod validation
-36. order summary
-37. simulated submission
-38. order success
-
-## Phase 7 — Polish
-
-39. responsive refinement
-40. accessibility
-41. animations
-42. image handling
-43. performance
-44. code cleanup
-
-## Phase 8 — Verification
-
-45. lint
-46. typecheck
-47. build
-48. fix all errors
-49. inspect routes
-50. verify all critical flows
-
----
-
-# 38. AGENT BEHAVIOR
-
-When working:
-
-- inspect before modifying
-- reuse existing code when sensible
-- do not delete working features without reason
-- do not rewrite the entire project unnecessarily
-- make changes incrementally
-- verify after major changes
-- fix errors immediately
-- keep architecture consistent
-
-When requirements are clear, execute them directly.
-
-Do not stop because a non-coding decision is missing.
-
-Use a sensible placeholder and continue.
-
----
-
-# 39. DECISION RULE
-
-When there are several technically valid choices:
-
-Choose the option that best satisfies:
-
-1. maintainability
-2. simplicity
-3. user experience
-4. responsiveness
-5. future extensibility
-
-Avoid overengineering.
-
----
-
-# 40. DEFINITION OF DONE
-
-The project is DONE only when:
-
-- all required routes exist
-- all required interactions work
-- product data is functional
-- cart works
-- wishlist works
-- search works
-- filtering works
-- sorting works
-- checkout works
-- order success works
-- responsive layout works
-- empty states exist
-- error states exist
-- loading states exist
-- forms validate
-- no major TypeScript errors
-- no major lint errors
-- production build succeeds
-- no core feature is left as a fake button
-
-The final result should feel like a complete ecommerce storefront.
-
----
-
-# 41. FINAL OUTPUT FROM AGENT
-
-When coding is complete, provide a concise final report containing:
-
-## Implemented
-
-List the major completed features.
-
-## Architecture
-
-List the important architecture decisions.
-
-## Verification
-
-Report:
-
-- typecheck result
-- lint result
-- build result
-- important flows tested
-
-## Known Limitations
-
-Only mention things intentionally left for the human / future backend.
-
-Do not claim something works if it was not verified.
-
----
-
-# 42. NON-CODING BOUNDARY
-
-Do NOT take ownership of:
-
-- choosing final brand identity
-- creating final marketing campaign
-- choosing final product photography
-- buying domain
-- creating Vercel account
-- entering private API credentials
-- creating payment accounts
-- deploying using credentials you do not have
-- deciding final business strategy
-
-The agent's responsibility ends at producing a complete, working, production-ready frontend codebase.
-
-The human handles the real-world business and account-level tasks.
-
----
-
-# 43. FINAL PRINCIPLE
-
-Build NusaMarket as if it will be shown to a professional client.
-
-Do not optimize for "having many features."
-
-Optimize for:
-
-- complete user flow
-- visual quality
-- UX consistency
-- clean architecture
-- responsive behavior
-- maintainable code
-- reliable interactions
-
-The final application must look and behave like a real modern ecommerce storefront.
+**Catatan insiden:** Selama eksekusi, file project sempat terhapus oleh proses eksternal (dua kali).
+Rebuild total dilakukan dari konteks + forensik bundle dist — semua fitur di atas hasil rebuild dan
+terverifikasi via QA headless (13 route, 0 console error) + Lighthouse.

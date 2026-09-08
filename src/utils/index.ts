@@ -52,9 +52,8 @@ export const FREE_SHIPPING_THRESHOLD = 500000;
 
 /**
  * Single source of truth for what shipping actually costs. Every surface that
- * promises complimentary shipping above the threshold - announcement bar, cart
- * drawer progress, cart banner - resolves through here, so the promise and the
- * charged total can never drift apart.
+ * promises complimentary shipping above the threshold resolves through here,
+ * so the promise and the charged total can never drift apart.
  */
 export function shippingCostFor(method: ShippingMethod, subtotal: number): number {
   if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
@@ -62,15 +61,18 @@ export function shippingCostFor(method: ShippingMethod, subtotal: number): numbe
 }
 
 /**
- * Adjusts the width parameter on Unsplash-style URLs so the browser fetches
- * a size-appropriate rendition rather than always downloading the 900 px master.
- * `width` is the CSS width the image occupies; the request doubles it for
- * high-density screens and never exceeds the stored 900 px rendition.
- *
- * Local asset paths (e.g. `/images/products/lokal-classic-tee/01.webp`) do not
- * contain a `?w=` parameter, so the regex never matches and they are returned
- * untouched — this function is a zero-cost passthrough for local files.
+ * Adjusts the width parameter on Unsplash-style URLs; a zero-cost passthrough
+ * for local asset paths (see v1 rationale).
  */
 export function imageSource(src: string, width: number): string {
   return src.replace(/([?&]w=)\d+/, `$1${Math.min(900, width * 2)}`);
+}
+
+/**
+ * Mobile-sized variant of a local product image: `01.webp` → `01-480.webp`.
+ * Returns the original for non-local paths or when no dash variant exists
+ * (the card's onError chain falls back to the master file).
+ */
+export function thumbSource(src: string): string {
+  return src.replace(/(\d{2})\.webp$/, '$1-480.webp');
 }

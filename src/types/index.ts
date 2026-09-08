@@ -16,7 +16,37 @@ export type Product = {
   featured?: boolean;
   isNew?: boolean;
   isBestSeller?: boolean;
+  /** Origin: where this piece is made — powers the region filter and Origin tab. */
+  region: Region;
+  /** Craft & provenance: material, process, and the artisan story behind it. */
+  craft: {
+    /** One line of material truth — fabric weight, weave, hardware. */
+    material: string;
+    /** How it is actually made — process, run size, technique. */
+    process: string;
+    /** Named atelier or workshop behind the piece. */
+    atelier: string;
+    /** Provenance note: origin context used by the Craft Story tab. */
+    story?: string;
+  };
 };
+
+export type Region =
+  | 'Sumatra'
+  | 'Java'
+  | 'Bali'
+  | 'Nusa Tenggara'
+  | 'Kalimantan'
+  | 'Sulawesi';
+
+export const REGIONS: Region[] = [
+  'Sumatra',
+  'Java',
+  'Bali',
+  'Nusa Tenggara',
+  'Kalimantan',
+  'Sulawesi',
+];
 
 export type CartItem = {
   product: Product;
@@ -70,4 +100,5 @@ export type FilterState = {
   rating: string;
   sort: string;
   search: string;
+  region: string;
 };

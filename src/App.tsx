@@ -9,6 +9,10 @@ const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
+const JournalPage = lazy(() => import('./pages/JournalPage'));
+const CaseStudyPage = lazy(() => import('./pages/CaseStudyPage'));
+const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
 
 export default function App() {
   return (
@@ -25,16 +29,20 @@ export default function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order/success" element={<OrderSuccessPage />} />
+          <Route path="journal" element={<JournalPage />} />
+          <Route path="case-study" element={<CaseStudyPage />} />
+          <Route path="design-system" element={<DesignSystemPage />} />
+          <Route path="admin" element={<AdminPage />} />
           <Route
             path="*"
             element={
               <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
-                <p className="text-sm font-medium text-stone-900">
+                <p className="font-display text-sm font-semibold text-ink">
                   That page does not exist.
                 </p>
                 <Link
                   to="/"
-                  className="text-xs text-stone-600 underline underline-offset-4 transition-colors duration-150 hover:text-stone-950"
+                  className="text-xs text-stone-600 underline underline-offset-4 transition-colors duration-150 hover:text-ink"
                 >
                   Return to the storefront
                 </Link>
@@ -46,4 +54,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

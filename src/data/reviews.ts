@@ -1,105 +1,88 @@
 import type { Product } from '../types';
 
-export type Review = {
+/**
+ * Deterministic pseudo-review generator, keyed on product id — the same
+ * product always renders the same sample reviews between loads.
+ */
+
+const NAMES = [
+  'Raka P.', 'Dewi A.', 'Bimo S.', 'Sari W.', 'Andra K.', 'Melati R.',
+  'Yoga P.', 'Nadia F.', 'Gilang R.', 'Tania M.', 'Reza A.', 'Intan L.',
+];
+
+const OPENERS = [
+  'The weight is the first thing you notice — it feels serious in the hand.',
+  'Third wash and the shape is exactly as it arrived.',
+  'Bought one, came back for a second within a month.',
+  'The finishing is well above what the photos suggest.',
+  'Wears cooler than expected for the fabric weight.',
+  'The small details carry it: the seams, the buttons, the hem.',
+];
+
+const MIDDLES = [
+  'Sizing note: cut follows the size chart honestly.',
+  'Delivery was quick and the packaging was plastic-free.',
+  'It has become my default weekend piece.',
+  'You can tell an actual person finished this garment.',
+  'Colour is slightly deeper in person — better, honestly.',
+  'Holds a press after ironing better than anything else I own.',
+];
+
+function seeded(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return () => {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    return ((h >>> 0) % 1000) / 1000;
+  };
+}
+
+export type SampleReview = {
   id: string;
   author: string;
-  location: string;
   rating: number;
-  /** Whole days before today — kept relative so the demo never reads as stale. */
-  daysAgo: number;
+  date: string;
   title: string;
   body: string;
 };
 
-/**
- * Sample review copy for the demo catalog. Selection is deterministic (derived
- * from the product id) so a given product always shows the same reviews across
- * reloads — the same role a real `GET /products/:id/reviews` would fill.
- */
-const REVIEWERS = [
-  { author: 'Raka W.', location: 'Bandung' },
-  { author: 'Ayu P.', location: 'Denpasar' },
-  { author: 'Dimas S.', location: 'Jakarta Selatan' },
-  { author: 'Nadia R.', location: 'Yogyakarta' },
-  { author: 'Bagas H.', location: 'Surabaya' },
-  { author: 'Sekar M.', location: 'Semarang' },
-  { author: 'Fajar A.', location: 'Makassar' },
-  { author: 'Tania L.', location: 'Medan' },
-];
-
-const NOTES = [
-  {
-    title: 'Material is the real deal',
-    body: 'The fabric weight is exactly as described and the stitching is clean throughout. It has held its shape after several washes.',
-  },
-  {
-    title: 'True to size',
-    body: 'Ordered my usual size and the fit is spot on. The cut sits well without feeling boxy, which is rare at this price.',
-  },
-  {
-    title: 'Packaging deserves a mention',
-    body: 'Arrived in three days, folded properly with a care card. Small details, but it makes the whole thing feel considered.',
-  },
-  {
-    title: 'Wears in nicely',
-    body: 'Slightly stiff on the first wear, then it softened up and started to feel like something I have owned for years.',
-  },
-  {
-    title: 'Colour is accurate',
-    body: 'What you see in the photos is what arrives — no surprise undertones. Pairs with almost everything I already own.',
-  },
-  {
-    title: 'Would buy again',
-    body: 'Second piece I have bought from this label. Consistent quality and the finishing is noticeably better than fast fashion.',
-  },
-];
-
-/** Cheap deterministic hash so the same product always maps to the same sample. */
-function hash(value: string): number {
-  let h = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    h = (h * 31 + value.charCodeAt(i)) % 100000;
-  }
-  return h;
-}
-
-const clampRating = (value: number) => Math.max(3, Math.min(5, Math.round(value)));
-
-/** Three sample reviews whose ratings bracket the product's aggregate score. */
-export function getReviews(product: Product): Review[] {
-  const seed = hash(product.id);
-  const offsets = [0.4, 0, -0.6];
-  const daysAgo = [6, 21, 44];
-
-  return offsets.map((offset, i) => {
-    const reviewer = REVIEWERS[(seed + i * 3) % REVIEWERS.length];
-    const note = NOTES[(seed + i * 2) % NOTES.length];
+export function reviewsFor(product: Product, count = 3): SampleReview[] {
+  const rand = seeded(product.id + product.slug);
+  return Array.from({ length: count }, (_, i) => {
+    const nameIdx = Math.floor(rand() * NAMES.length);
+    const rating = Math.max(3, Math.min(5, Math.round(product.rating + (rand() - 0.35))));
+    const daysAgo = Math.floor(rand() * 120) + 3;
+    const date = new Date(Date.now() - daysAgo * 86400000).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
     return {
-      id: `${product.id}-review-${i}`,
-      author: reviewer.author,
-      location: reviewer.location,
-      rating: clampRating(product.rating + offset),
-      daysAgo: daysAgo[i],
-      title: note.title,
-      body: note.body,
+      id: `${product.id}-rev-${i}`,
+      author: NAMES[(nameIdx + i) % NAMES.length],
+      rating,
+      date,
+      title: ['Exactly as described', 'Quality shows', 'Worth the wait', 'Repeat purchase'][i % 4],
+      body: `${OPENERS[(nameIdx + i) % OPENERS.length]} ${MIDDLES[(nameIdx + i * 2) % MIDDLES.length]}`,
     };
   });
 }
 
-/**
- * Star distribution implied by the aggregate score, weighted toward the top
- * bucket. Returns percentages that always sum to 100.
- */
-export function getRatingBreakdown(rating: number): { stars: number; percent: number }[] {
-  const top = Math.round(Math.max(0, Math.min(1, (rating - 3) / 2)) * 62) + 30;
-  const second = Math.round((100 - top) * 0.62);
-  const third = Math.round((100 - top - second) * 0.7);
-  const fourth = Math.max(0, 100 - top - second - third);
-  return [
-    { stars: 5, percent: top },
-    { stars: 4, percent: second },
-    { stars: 3, percent: third },
-    { stars: 2, percent: fourth },
-    { stars: 1, percent: 0 },
-  ];
+/** Star-distribution breakdown derived from the aggregate rating. */
+export function ratingBreakdown(product: Product): { stars: number; pct: number }[] {
+  const top = Math.round(product.rating);
+  return [5, 4, 3, 2, 1].map((stars) => {
+    let pct = 0;
+    if (stars === top) pct = 55 + Math.round((product.rating - top + 0.5) * 30);
+    else if (stars === top - 1) pct = 22;
+    else if (stars === 5) pct = 62;
+    if (stars > top) pct = 0;
+    if (stars === top && top === 5) pct = 78;
+    return { stars, pct: Math.min(95, Math.max(2, pct)) };
+  });
 }

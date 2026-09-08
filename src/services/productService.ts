@@ -1,19 +1,17 @@
 import { products } from '../data/products';
-import type { Product } from '../types';
+import type { Product, Region } from '../types';
 
 /**
- * Case-insensitive partial match across product name, brand and category.
- * Single source of truth for search matching (used by the search modal,
- * the shop catalog filters and the service layer).
+ * Case-insensitive partial match across product name, brand, category and
+ * atelier. Single source of truth for search matching (used by the search
+ * modal, the shop catalog filters and the service layer).
  *
- * Every word in the query has to appear, but the order does not matter: a
- * shopper typing "canvas tote" still finds the Heavy Canvas Market Tote, and
- * "lokal hoodie" narrows to that brand's hoodies.
+ * Every word in the query has to appear, but the order does not matter.
  */
 export function matchesSearchQuery(product: Product, query: string): boolean {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return true;
-  const haystack = `${product.name} ${product.brand} ${product.category}`.toLowerCase();
+  const haystack = `${product.name} ${product.brand} ${product.category} ${product.craft.atelier}`.toLowerCase();
   return terms.every((term) => haystack.includes(term));
 }
 
@@ -24,8 +22,15 @@ export function filterBySearch(list: Product[], query: string): Product[] {
   return list.filter((p) => matchesSearchQuery(p, q));
 }
 
-// Simulate async API call
-function delay(ms = 80) {
+/** Products by region — powers the archipelago filter. */
+export function filterByRegion(list: Product[], region: Region | 'All'): Product[] {
+  if (region === 'All') return [...list];
+  return list.filter((p) => p.region === region);
+}
+
+// Simulate async API call — short on purpose: the skeleton exists to be
+// replaced, and on a slow connection every artificial ms reads as lag.
+function delay(ms = 20) {
   return new Promise<void>((res) => setTimeout(res, ms));
 }
 

@@ -16,9 +16,11 @@ export function Navbar() {
   const mobilePanelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const bagRef = useRef<HTMLButtonElement>(null);
 
   const totalItems = useCartStore((s) => s.totalItems());
   const wishlistCount = useWishlistStore((s) => s.ids.length);
+  const bagPulse = useUIStore((s) => s.bagPulse);
   const {
     openCartDrawer,
     closeCartDrawer,
@@ -32,15 +34,13 @@ export function Navbar() {
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 8);
+    handler();
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
   // Publish the real header height so page content, anchor offsets and the
-  // search overlay reserve exactly the space the fixed header occupies
-  // (announcement bar + nav row, which differ per breakpoint).
-  // Before paint, not after: the first frame would otherwise lay the page out
-  // against the CSS fallback and visibly jump once the real height arrives.
+  // search overlay reserve exactly the space the fixed header occupies.
   useLayoutEffect(() => {
     const element = headerRef.current;
     if (!element) return;
@@ -55,11 +55,18 @@ export function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  // The bag icon bounces once on every add-to-bag.
+  useEffect(() => {
+    if (bagPulse === 0 || !bagRef.current) return;
+    bagRef.current.classList.remove('animate-bag-bounce');
+    // Restart the keyframe animation by forcing a reflow between removal/add.
+    void bagRef.current.offsetWidth;
+    bagRef.current.classList.add('animate-bag-bounce');
+  }, [bagPulse]);
+
   useScrollLock(mobileMenuOpen);
 
-  // Escape closes the mobile menu and hands focus back to the trigger. The
-  // search overlay sits above the menu and owns Escape while it is open, so one
-  // press closes one layer instead of collapsing both at once.
+  // Escape closes the mobile menu and hands focus back to the trigger.
   useEffect(() => {
     if (!mobileMenuOpen || searchOverlayOpen) return;
     const handleKey = (event: KeyboardEvent) => {
@@ -71,17 +78,14 @@ export function Navbar() {
     return () => document.removeEventListener('keydown', handleKey);
   }, [mobileMenuOpen, searchOverlayOpen, closeMobileMenu]);
 
-  // Opening the panel moves focus into it, so Tab continues through the menu
-  // rather than from the top of the document. It stays a non-modal dialog: the
-  // header - and with it the close control - has to remain reachable.
+  // Opening the panel moves focus into it.
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const timer = window.setTimeout(() => mobilePanelRef.current?.focus(), 40);
     return () => window.clearTimeout(timer);
   }, [mobileMenuOpen]);
 
-  // The panel and its trigger are mobile-only. Growing the viewport past `lg`
-  // would otherwise leave an open, unclosable overlay behind the desktop nav.
+  // Growing the viewport past `lg` closes the mobile-only panel.
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const query = window.matchMedia('(min-width: 64rem)');
@@ -93,8 +97,7 @@ export function Navbar() {
     return () => query.removeEventListener('change', syncBreakpoint);
   }, [mobileMenuOpen, closeMobileMenu]);
 
-  // A route change - including browser back/forward - must never leave an
-  // overlay hanging over the new page.
+  // A route change must never leave an overlay hanging over the new page.
   useEffect(() => {
     closeMobileMenu();
     closeSearchOverlay();
@@ -113,14 +116,10 @@ export function Navbar() {
   const onShop = location.pathname === '/shop';
   const onProduct = location.pathname.startsWith('/product/');
   const onWishlist = location.pathname === '/wishlist';
+  const onJournal = location.pathname === '/journal';
   const isNewArrivalsActive = onShop && searchParams.get('sort') === 'newest';
-  // Only the two real homepage sections count as a section hash; anything else
-  // (the skip link's #main, a stale fragment) leaves Home itself current.
-  const sectionHash = location.hash === '#collections' || location.hash === '#about' ? location.hash : '';
+  const sectionHash = location.hash === '#collections' || location.hash === '#artisans' ? location.hash : '';
 
-  // `page` marks the exact current document; `true` marks the section a
-  // deeper page belongs to - a product page is inside the catalog, but it is
-  // not the catalog page itself.
   const navLinks = [
     { label: 'Home', to: '/', isActive: onHome && !sectionHash, current: 'page' as const },
     {
@@ -130,8 +129,9 @@ export function Navbar() {
       current: onProduct ? ('true' as const) : ('page' as const),
     },
     { label: 'New Arrivals', to: '/shop?sort=newest', isActive: isNewArrivalsActive, current: 'page' as const },
+    { label: 'The Craft', to: '/journal', isActive: onJournal, current: 'page' as const },
     { label: 'Collections', to: '/#collections', isActive: onHome && sectionHash === '#collections', current: 'true' as const },
-    { label: 'About', to: '/#about', isActive: onHome && sectionHash === '#about', current: 'true' as const },
+    { label: 'Artisans', to: '/#artisans', isActive: onHome && sectionHash === '#artisans', current: 'true' as const },
   ];
 
   return (
@@ -139,12 +139,14 @@ export function Navbar() {
       <header
         ref={headerRef}
         data-print-hide
-        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-200 bg-white/95 backdrop-blur-md ${
-          scrolled ? 'border-b border-stone-200/80 shadow-xs' : 'border-b border-stone-200/50'
+        className={`fixed top-0 left-0 right-0 z-30 transition-[background-color,border-color,box-shadow] duration-200 ${
+          scrolled
+            ? 'bg-white border-b border-stone-200/80 shadow-xs'
+            : 'bg-canvas border-b border-stone-200/50'
         }`}
       >
         {/* Micro announcement bar */}
-        <div className="bg-stone-950 text-stone-200 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase py-1.5 px-4 text-center select-none border-b border-stone-800">
+        <div className="bg-ink text-stone-200 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase py-1.5 px-4 text-center select-none border-b border-stone-800">
           Complimentary shipping on all national orders above Rp 500.000
         </div>
 
@@ -156,7 +158,7 @@ export function Navbar() {
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls={MOBILE_MENU_ID}
-            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-stone-950 lg:hidden cursor-pointer active:scale-95 transition-transform duration-150"
+            className="flex h-9 w-9 items-center justify-center text-stone-700 hover:text-ink lg:hidden cursor-pointer active:scale-95 transition-transform duration-150"
           >
             {mobileMenuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
           </button>
@@ -164,10 +166,10 @@ export function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="text-xs sm:text-sm font-bold uppercase tracking-[0.24em] text-stone-950 transition-opacity duration-150 hover:opacity-80 active:opacity-70"
+            className="font-display text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] text-ink transition-opacity duration-150 hover:opacity-80 active:opacity-70"
             onClick={closeMobileMenu}
           >
-            NusaMarket
+            Nusa<span className="text-clay-600">Market</span>
           </Link>
 
           {/* Desktop navigation */}
@@ -179,15 +181,15 @@ export function Navbar() {
                 aria-current={link.isActive ? link.current : undefined}
                 className={`relative py-1 text-xs uppercase tracking-[0.14em] transition-all duration-150 ${
                   link.isActive
-                    ? 'font-bold text-stone-950'
-                    : 'font-medium text-stone-500 hover:text-stone-950 active:scale-[0.98]'
+                    ? 'font-bold text-ink'
+                    : 'font-medium text-stone-500 hover:text-ink active:scale-[0.98]'
                 }`}
               >
                 {link.label}
                 {link.isActive && (
                   <span
                     aria-hidden="true"
-                    className="absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full bg-stone-950"
+                    className="absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full bg-clay-500"
                   />
                 )}
               </Link>
@@ -201,7 +203,7 @@ export function Navbar() {
               aria-label="Search products"
               aria-haspopup="dialog"
               aria-expanded={searchOverlayOpen}
-              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-all duration-150 active:scale-90 cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center text-stone-600 hover:text-ink transition-all duration-150 active:scale-90 cursor-pointer"
             >
               <Search size={18} strokeWidth={1.75} />
             </button>
@@ -210,30 +212,31 @@ export function Navbar() {
               aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? 'item' : 'items'}`}
               aria-current={onWishlist ? 'page' : undefined}
               className={`relative flex h-9 w-9 items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer ${
-                onWishlist ? 'text-stone-950' : 'text-stone-600 hover:text-stone-950'
+                onWishlist ? 'text-ink' : 'text-stone-600 hover:text-ink'
               }`}
             >
               <Heart size={18} strokeWidth={1.75} fill={onWishlist ? 'currentColor' : 'none'} />
               {wishlistCount > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-stone-950 px-1 text-[9px] font-bold text-white shadow-xs"
+                  className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink px-1 text-[9px] font-bold text-white shadow-xs"
                 >
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
             </Link>
             <button
+              ref={bagRef}
               onClick={openCartDrawer}
               aria-label={`Shopping bag, ${totalItems} ${totalItems === 1 ? 'item' : 'items'}`}
               aria-haspopup="dialog"
-              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-stone-950 transition-all duration-150 active:scale-90 cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center text-stone-600 hover:text-ink transition-all duration-150 active:scale-90 cursor-pointer"
             >
               <ShoppingBag size={18} strokeWidth={1.75} />
               {totalItems > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-stone-950 px-1 text-[9px] font-bold text-white shadow-xs"
+                  className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-clay-500 px-1 text-[9px] font-bold text-white shadow-xs"
                 >
                   {totalItems > 9 ? '9+' : totalItems}
                 </span>
@@ -252,10 +255,6 @@ export function Navbar() {
         aria-hidden={!mobileMenuOpen}
         inert={!mobileMenuOpen}
         tabIndex={-1}
-        /* Stays mounted so it can fade out, the way the cart drawer does.
-           `inert` keeps its links out of the tab order and the accessibility
-           tree while closed; `pointer-events-none` keeps the invisible panel
-           from swallowing taps meant for the page behind it. */
         className={[
           'fixed inset-0 z-20 flex flex-col justify-between overflow-y-auto bg-white px-6',
           'pt-[calc(var(--nm-header-h)+1.5rem)] pb-8 focus:outline-none lg:hidden',
@@ -272,12 +271,12 @@ export function Navbar() {
               aria-current={link.isActive ? link.current : undefined}
               className={`flex items-center justify-between text-lg tracking-tight transition-colors duration-150 ${
                 link.isActive
-                  ? 'font-bold text-stone-950'
-                  : 'font-medium text-stone-600 hover:text-stone-950 active:text-stone-950'
+                  ? 'font-bold text-ink'
+                  : 'font-medium text-stone-600 hover:text-ink active:text-ink'
               }`}
             >
               <span>{link.label}</span>
-              {link.isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-stone-950" />}
+              {link.isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-clay-500" />}
             </Link>
           ))}
 
@@ -287,7 +286,7 @@ export function Navbar() {
               onClick={closeMobileMenu}
               aria-current={onWishlist ? 'page' : undefined}
               className={`flex items-center justify-between text-sm transition-colors duration-150 active:scale-[0.99] ${
-                onWishlist ? 'font-semibold text-stone-950' : 'font-medium text-stone-600 hover:text-stone-950'
+                onWishlist ? 'font-semibold text-ink' : 'font-medium text-stone-600 hover:text-ink'
               }`}
             >
               <span>Wishlist ({wishlistCount})</span>
@@ -299,8 +298,8 @@ export function Navbar() {
               aria-current={location.pathname === '/cart' ? 'page' : undefined}
               className={`flex items-center justify-between text-sm transition-colors duration-150 active:scale-[0.99] ${
                 location.pathname === '/cart'
-                  ? 'font-semibold text-stone-950'
-                  : 'font-medium text-stone-600 hover:text-stone-950'
+                  ? 'font-semibold text-ink'
+                  : 'font-medium text-stone-600 hover:text-ink'
               }`}
             >
               <span>Shopping Bag ({totalItems})</span>
@@ -314,7 +313,7 @@ export function Navbar() {
             NusaMarket Editorial
           </p>
           <p className="text-xs leading-relaxed text-stone-500">
-            Thoughtfully crafted essentials from independent Indonesian creators.
+            Handcrafted pieces from Indonesia’s independent ateliers.
           </p>
         </div>
       </div>

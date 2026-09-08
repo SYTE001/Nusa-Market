@@ -1,17 +1,119 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Design tokens
-   Editorial stone palette, one accent (ink), single shared easing curve.
+   Self-hosted fonts (public/fonts/). Local faces eliminate two render-blocking
+   external stylesheets and two third-party DNS lookups from the critical path;
+   font-display: swap keeps text paintable while the local file streams.
+   --------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant-italic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------------
+   NusaMarket design tokens
+   Warm archipelago palette: ink + clay, emerald reserved for meaning
+   (free-shipping unlock), gold for provenance marks. Fonts: Clash Display
+   (display), Satoshi (body), Cormorant Garamond (editorial serif), JetBrains
+   Mono (data/utility).
    --------------------------------------------------------------------------- */
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Clash Display', 'Satoshi', sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
+  /* Warm neutrals — canvas system */
   --color-canvas: #faf9f7;
   --color-canvas-raised: #fdfcfb;
-  /* Sand tone for editorial bands (hero, brand story, promo banners) */
   --color-canvas-muted: #f5f3ef;
+  --color-canvas-deep: #efe9df;
+
+  /* Ink — carries every emphasis (unchanged role from v1) */
   --color-ink: #18181b;
+  --color-ink-soft: #44403c;
+
+  /* Clay / terracotta — the archipelago accent, paired with ink (new) */
+  --color-clay-50: #fbf3ee;
+  --color-clay-100: #f5e0d3;
+  --color-clay-200: #eac0a7;
+  --color-clay-300: #dd9d77;
+  --color-clay-400: #cd7a4d;
+  --color-clay-500: #c1440e;
+  --color-clay-600: #a63a0c;
+  --color-clay-700: #84300c;
+  --color-clay-800: #5d240b;
+  --color-clay-900: #3a1607;
+
+  /* Soft gold — provenance / premium labels only (new) */
+  --color-gold-300: #d8b25f;
+  --color-gold-400: #c69a3e;
+  --color-gold-500: #b0832a;
+  --color-gold-600: #8f6a1f;
+
+  /* Emerald — keeps its v1 meaning: commerce status, never decoration */
+  --color-jade-500: #059669;
+  --color-jade-600: #047857;
+  --color-jade-700: #065f46;
 
   --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -29,8 +131,6 @@
 html {
   scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
-  /* Reserve the scrollbar gutter so locking body scroll for a drawer,
-     the search modal or the mobile menu never shifts the layout. */
   scrollbar-gutter: stable;
 }
 
@@ -43,122 +143,216 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Editorial selection */
 ::selection {
-  background-color: var(--color-ink);
-  color: var(--color-canvas);
+  background-color: var(--color-clay-500);
+  color: #fff;
 }
 
-/* Crisp focus rings for interactive elements without explicit borders */
 :focus-visible:not(input):not(textarea):not(select) {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
-/* Custom refined scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-canvas); }
+::-webkit-scrollbar-thumb { background: #d6d3d1; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
 
-::-webkit-scrollbar-track {
-  background: var(--color-canvas);
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
-}
-
-/* Horizontal rails (category pills, gallery thumbnails) scroll without chrome */
+/* Horizontal rails scroll without chrome */
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
+  &::-webkit-scrollbar { width: 0; height: 0; }
+}
+
+/* ---------------------------------------------------------------------------
+   Type utilities — display/serif/mono roles
+   --------------------------------------------------------------------------- */
+@utility font-display {
+  font-family: var(--font-display);
+}
+@utility font-serif-editorial {
+  font-family: var(--font-serif);
+}
+@utility font-mono-data {
+  font-family: var(--font-mono);
+}
+
+/* ---------------------------------------------------------------------------
+   Film grain — SVG turbulence overlay, 6% strength (hero & editorial bands)
+   --------------------------------------------------------------------------- */
+@utility grain-overlay {
+  position: relative;
+  isolation: isolate;
+}
+
+.grain-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* The grain is an SVG filter over a full-bleed layer — cheap on desktop, a
+   repaint tax on low-end mobile GPUs, so touch devices drop it entirely. */
+@media (hover: none) {
+  .grain-overlay::after {
+    content: none;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Motion language
-   Entrances use keyframes below; state changes use Tailwind transitions on a
-   three-step scale: 150ms micro-interaction, 200ms overlay/chrome,
-   500ms editorial image reveal. Nothing cinematic, nothing blocking.
+   Batik texture — subtle kawung-inspired geometry as a background weave
+   (section dividers & artisan band; opacity kept at 5–8%, texture not decor)
    --------------------------------------------------------------------------- */
-/* Page entrance is opacity only, deliberately: a transform on the route wrapper
-   would make it the containing block for every `position: fixed` descendant
-   (the mobile purchase bar, above all) and pin it to the page instead of the
-   viewport. Rises belong to elements that own no fixed children. */
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+@utility batik-weave {
+  background-image:
+    linear-gradient(45deg, transparent 46%, var(--color-clay-200) 46%, var(--color-clay-200) 54%, transparent 54%),
+    linear-gradient(-45deg, transparent 46%, var(--color-clay-200) 46%, var(--color-clay-200) 54%, transparent 54%);
+  background-size: 18px 18px;
+}
+
+/* Motif divider strip — tenun-inspired thin band */
+@utility motif-divider {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 6px,
+      var(--color-clay-300) 6px,
+      var(--color-clay-300) 8px,
+      transparent 8px,
+      transparent 14px,
+      var(--color-ink) 14px,
+      var(--color-ink) 15px,
+      transparent 15px,
+      transparent 22px
+    );
+  background-size: 44px 10px;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion language (extended for v2)
+   150ms feedback · 200ms overlay · 500ms editorial reveal
+   No animation library: every effect below is a transition or keyframe on
+   compositor-friendly properties (transform/opacity), gated by media queries
+   so low-end mobile hardware never runs the cinematic layers.
+   --------------------------------------------------------------------------- */
+
+/* Spring-feel drawer: overshoot curve reads as spring physics for ~0 KB. */
+.nm-drawer {
+  transition: transform 260ms cubic-bezier(0.34, 1.3, 0.5, 1);
+  will-change: transform;
+}
+
+/* Magnetic hover: pointer position lands in CSS vars set by a rAF listener. */
+.nm-magnetic {
+  display: inline-flex;
+  vertical-align: middle;
+}
+.nm-magnetic-on > * {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 150ms ease-out, border-color 150ms ease-out;
+}
+.nm-magnetic-on > *:hover {
+  transform: translate(var(--mag-x, 0px), var(--mag-y, 0px));
+}
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .nm-magnetic-on > *:hover {
+    transform: none;
   }
 }
 
-.animate-page-enter {
-  animation: pageEnter 200ms var(--ease-editorial) forwards;
+/* Scroll-reveal (IntersectionObserver adds .reveal-shown). */
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 420ms var(--ease-editorial), transform 420ms var(--ease-editorial);
 }
+.reveal-shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-shown {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-page-enter { animation: pageEnter 200ms var(--ease-editorial) forwards; }
 
 @keyframes dropdownEnter {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(-4px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
+.animate-dropdown-enter { animation: dropdownEnter 150ms var(--ease-editorial) forwards; }
 
-.animate-dropdown-enter {
-  animation: dropdownEnter 150ms var(--ease-editorial) forwards;
-}
-
-/* Search content: soft rise-in, staggerable via animation-delay */
 @keyframes fadeRise {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-rise { animation: fadeRise 200ms var(--ease-editorial) both; }
 
-.animate-fade-rise {
-  animation: fadeRise 200ms var(--ease-editorial) both;
-}
-
-/* Heart pop animation for wishlist */
 @keyframes heartPop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.22);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+.animate-heart-pop { animation: heartPop 200ms ease-out forwards; }
+
+/* Ken Burns — slow settle on the hero image; disabled under reduced motion */
+@keyframes kenBurns {
+  from { transform: scale(1.12) translate3d(1.5%, -1%, 0); }
+  to { transform: scale(1) translate3d(0, 0, 0); }
+}
+/* Ken Burns — slow settle on the hero image; desktop pointers only (a low-end
+   phone GPU animating a full-bleed scale for 18s is where jank lives), and
+   disabled under reduced motion. */
+@media (hover: none) {
+  .animate-ken-burns { animation: none; }
+}
+.animate-ken-burns { animation: kenBurns 18s var(--ease-editorial) both; }
+
+/* Fly-to-cart ghost chip */
+@keyframes bagBounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.animate-bag-bounce { animation: bagBounce 450ms var(--ease-editorial) both; }
+
+/* Fly-to-cart ghost chip */
+@keyframes flyGhost {
+  0% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
-.animate-heart-pop {
-  animation: heartPop 200ms ease-out forwards;
+/* Below-fold sections skip layout/paint until near the viewport. Bounded to
+   simple bands (promo, newsletter): a cv:auto section that hosts a large
+   grid re-layouts the whole subtree when its intersection observer fires,
+   which costs more than it saves — heavy grids stay eagerly rendered. */
+@utility below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
 }
 
-/* Reduced motion preference */
+/* ---------------------------------------------------------------------------
+   Reduced motion — collapse everything except loading feedback
+   --------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
 
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -168,37 +362,17 @@ body {
     scroll-behavior: auto !important;
   }
 
-  /* Loading feedback is information, not decoration: a spinner frozen on one
-     frame and a skeleton that never pulses both read as a hung page. They keep
-     running - calmer, and never faster than the sweep they replaced. */
-  .animate-spin {
-    animation-duration: 1.4s !important;
-    animation-iteration-count: infinite !important;
-  }
-
-  .animate-pulse {
-    animation-duration: 2.6s !important;
-    animation-iteration-count: infinite !important;
-  }
+  .animate-spin { animation-duration: 1.4s !important; animation-iteration-count: infinite !important; }
+  .animate-pulse { animation-duration: 2.6s !important; animation-iteration-count: infinite !important; }
+  .animate-ken-burns { animation: none !important; }
 }
 
 /* ---------------------------------------------------------------------------
    Print: the order receipt is the only page meant for paper.
    --------------------------------------------------------------------------- */
 @media print {
-  [data-print-hide] {
-    display: none !important;
-  }
-
-  body {
-    background: #ffffff;
-  }
-
-  main {
-    padding-top: 0 !important;
-  }
-
-  * {
-    box-shadow: none !important;
-  }
+  [data-print-hide] { display: none !important; }
+  body { background: #ffffff; }
+  main { padding-top: 0 !important; }
+  * { box-shadow: none !important; }
 }

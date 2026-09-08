@@ -1,81 +1,69 @@
-import { X } from 'lucide-react';
-import type { CartItem as CartItemType } from '../../types';
+import { X, Minus, Plus } from 'lucide-react';
+import type { CartItem } from '../../types';
 import { formatRupiah } from '../../utils';
 import { useCartStore } from '../../stores/cartStore';
-import { QuantitySelector } from '../ui/QuantitySelector';
 import { ProductThumb } from '../product/ProductThumb';
 
-type CartItemProps = {
-  item: CartItemType;
-  compact?: boolean;
+type CartItemRowProps = {
+  item: CartItem;
 };
 
-export function CartItem({ item, compact = false }: CartItemProps) {
-  // Subscribed field by field: a bare `useCartStore()` would re-render every row
-  // in the bag whenever any part of the store changes.
-  const updateQuantity = useCartStore((s) => s.updateQuantity);
+export function CartItemRow({ item }: CartItemRowProps) {
+  const increaseQuantity = useCartStore((s) => s.increaseQuantity);
+  const decreaseQuantity = useCartStore((s) => s.decreaseQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
-  const { product, quantity, selectedSize, selectedColor } = item;
 
-  function handleRemove() {
-    removeItem(product.id, selectedSize, selectedColor);
-  }
+  const variant = [item.selectedSize, item.selectedColor].filter(Boolean).join(' · ');
 
   return (
-    <div className={`flex gap-3.5 ${compact ? 'py-3' : 'py-4.5'}`}>
-      {/* Product Image */}
-      <ProductThumb
-        product={product}
-        className={compact ? 'h-16 w-12' : 'h-22 w-16'}
-        width={compact ? 48 : 64}
-        height={compact ? 64 : 88}
-      />
+    <div className="flex gap-4 py-4">
+      <ProductThumb product={item.product} size="md" />
 
-      {/* Details & Controls */}
-      <div className="flex flex-1 flex-col justify-between gap-1 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-              {product.brand}
+            <p className="truncate text-xs font-semibold text-ink">{item.product.name}</p>
+            <p className="text-[10px] uppercase tracking-wider text-stone-500">
+              {item.product.brand}
+              {variant ? ` · ${variant}` : ''}
             </p>
-            <p className="truncate text-xs sm:text-sm font-medium text-stone-900 leading-snug">
-              {product.name}
+            <p className="text-[10px] text-clay-600 uppercase tracking-wider">
+              Made in {item.product.region}
             </p>
-            {(selectedSize || selectedColor) && (
-              <p className="text-[11px] text-stone-500 mt-0.5">
-                {[selectedSize && `Size: ${selectedSize}`, selectedColor && `Color: ${selectedColor}`]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-            )}
           </div>
           <button
-            onClick={handleRemove}
-            aria-label={`Remove ${product.name} from bag`}
-            className="-mr-1.5 -mt-1 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-xs text-stone-500 transition-colors duration-150 hover:bg-stone-100 hover:text-stone-900"
+            onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor)}
+            aria-label={`Remove ${item.product.name} from bag`}
+            className="-mr-1 -mt-1 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center text-stone-400 transition-colors duration-150 hover:text-red-600"
           >
-            <X size={15} strokeWidth={1.5} />
+            <X size={14} strokeWidth={2} />
           </button>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          {compact ? (
-            <p className="text-xs text-stone-500 font-medium">Qty {quantity}</p>
-          ) : (
-            <QuantitySelector
-              value={quantity}
-              max={product.stock}
-              // The selector reports the quantity it wants, not a direction, so
-              // the store call takes that value straight. Removal stays on the X
-              // button: the minus control stops at 1 rather than emptying the row
-              // out from under a mistimed second tap.
-              onChange={(val) => updateQuantity(product.id, val, selectedSize, selectedColor)}
-              size="sm"
-            />
-          )}
-          <span className="text-xs sm:text-sm font-semibold tabular-nums text-stone-950">
-            {formatRupiah(product.price * quantity)}
-          </span>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="flex items-center border border-stone-200">
+            <button
+              onClick={() => decreaseQuantity(item.product.id, item.selectedSize, item.selectedColor)}
+              aria-label={`Decrease quantity of ${item.product.name}`}
+              className="flex h-7 w-7 cursor-pointer items-center justify-center text-stone-600 transition-colors duration-150 hover:text-ink"
+            >
+              <Minus size={12} strokeWidth={2} />
+            </button>
+            <span className="w-7 text-center text-xs font-semibold tabular-nums text-ink">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() => increaseQuantity(item.product.id, item.selectedSize, item.selectedColor)}
+              aria-label={`Increase quantity of ${item.product.name}`}
+              disabled={item.quantity >= item.product.stock}
+              className="flex h-7 w-7 cursor-pointer items-center justify-center text-stone-600 transition-colors duration-150 hover:text-ink disabled:opacity-40"
+            >
+              <Plus size={12} strokeWidth={2} />
+            </button>
+          </div>
+          <p className="text-xs font-semibold tabular-nums text-ink">
+            {formatRupiah(item.product.price * item.quantity)}
+          </p>
         </div>
       </div>
     </div>

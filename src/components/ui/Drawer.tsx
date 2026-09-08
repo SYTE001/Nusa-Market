@@ -11,6 +11,11 @@ type DrawerProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Spring-feel drawer without an animation library: the panel uses a
+ * transition with a strong overshoot curve, which reads as spring physics at
+ * a fraction of the JS cost. Reduced motion collapses it to a toggle.
+ */
 export function Drawer({ open, onClose, title, side = 'right', children }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -26,6 +31,8 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
+  const offscreen = side === 'right' ? '100%' : '-100%';
+
   return (
     <div data-print-hide>
       {/* Backdrop */}
@@ -33,7 +40,7 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         onClick={onClose}
         aria-hidden="true"
         className={[
-          'fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200 ease-out',
+          'fixed inset-0 z-40 bg-ink/40 transition-opacity duration-200 ease-out',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         ].join(' ')}
       />
@@ -47,13 +54,12 @@ export function Drawer({ open, onClose, title, side = 'right', children }: Drawe
         aria-hidden={!open}
         inert={!open}
         tabIndex={-1}
+        style={{ transform: `translateX(${open ? '0%' : offscreen})` }}
         className={[
           // h-dvh, not h-full: a fixed element's height resolves against the large
           // viewport, which puts the drawer footer under a mobile browser toolbar.
-          'fixed top-0 z-50 flex h-dvh w-full max-w-md flex-col bg-white shadow-2xl',
-          'transition-transform duration-200 ease-out focus:outline-none',
+          'nm-drawer fixed top-0 z-50 flex h-dvh w-full max-w-md flex-col bg-white shadow-2xl focus:outline-none',
           side === 'right' ? 'right-0' : 'left-0',
-          open ? 'translate-x-0' : side === 'right' ? 'translate-x-full' : '-translate-x-full',
         ].join(' ')}
       >
         {/* Header */}
