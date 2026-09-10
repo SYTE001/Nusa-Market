@@ -44,6 +44,91 @@ export default function ProductDetailPage() {
     product ? `${product.name} — NusaMarket` : 'NusaMarket — Handcrafted in Indonesia'
   );
 
+  // Emit Product and BreadcrumbList JSON-LD structured data
+  useEffect(() => {
+    if (!product) return;
+
+    const productSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      image: product.images.map((img) =>
+        img.startsWith('http') ? img : `https://nusa-market.vercel.app${img}`
+      ),
+      description: product.description,
+      sku: product.id,
+      brand: {
+        '@type': 'Brand',
+        name: product.brand,
+      },
+      offers: {
+        '@type': 'Offer',
+        url: `https://nusa-market.vercel.app/product/${product.slug}`,
+        priceCurrency: 'IDR',
+        price: product.price,
+        availability:
+          product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+      },
+    };
+
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://nusa-market.vercel.app/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Shop',
+          item: 'https://nusa-market.vercel.app/shop',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: product.category,
+          item: `https://nusa-market.vercel.app/shop?category=${encodeURIComponent(product.category)}`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 4,
+          name: product.name,
+          item: `https://nusa-market.vercel.app/product/${product.slug}`,
+        },
+      ],
+    };
+
+    let productScript = document.getElementById('product-schema-jsonld') as HTMLScriptElement | null;
+    if (!productScript) {
+      productScript = document.createElement('script');
+      productScript.id = 'product-schema-jsonld';
+      productScript.type = 'application/ld+json';
+      document.head.appendChild(productScript);
+    }
+    productScript.textContent = JSON.stringify(productSchema);
+
+    let breadcrumbScript = document.getElementById('breadcrumb-schema-jsonld') as HTMLScriptElement | null;
+    if (!breadcrumbScript) {
+      breadcrumbScript = document.createElement('script');
+      breadcrumbScript.id = 'breadcrumb-schema-jsonld';
+      breadcrumbScript.type = 'application/ld+json';
+      document.head.appendChild(breadcrumbScript);
+    }
+    breadcrumbScript.textContent = JSON.stringify(breadcrumbSchema);
+
+    return () => {
+      document.getElementById('product-schema-jsonld')?.remove();
+      document.getElementById('breadcrumb-schema-jsonld')?.remove();
+    };
+  }, [product]);
+
   const addItem = useCartStore((s) => s.addItem);
   const { openCartDrawer, setFlyToCart } = useUIStore();
   const isWishlisted = useWishlistStore((s) => s.isWishlisted(product?.id ?? ''));

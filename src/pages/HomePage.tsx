@@ -112,97 +112,97 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-display text-3xl font-semibold leading-[1.06] tracking-tight text-ink sm:text-5xl lg:text-6xl">
-              Handwoven batik from Pekalongan.
+              Hand-stamped batik from Pekalongan.
               <br />
               <span className="font-serif-editorial font-medium italic text-clay-700">
-                Carved teak from Jepara.
+                Heavyweight cut-and-sew from Bandung.
               </span>
               <br />
               Shipped worldwide.
             </h1>
 
             <p className="max-w-lg text-xs leading-relaxed text-stone-600 sm:text-sm">
-              A curated storefront for Indonesia’s independent ateliers — every piece names
-              its maker, its material, and the process behind it.
+              A curated storefront for Indonesia’s independent ateliers — discover authentic
+              hand-stamped batik apparel, heavyweight cut-and-sew essentials, and considered goods
+              delivered worldwide.
             </p>
 
-            <div className="flex flex-col items-stretch gap-3 pt-1 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-stretch gap-4 pt-1 sm:flex-row sm:items-center">
               <Button to="/shop" size="md" magnetic className="w-full sm:w-auto">
                 Explore the Collection
               </Button>
-              <Button
-                to="/shop?sort=newest"
-                size="md"
-                variant="secondary"
-                className="w-full sm:w-auto"
-              >
-                See What&rsquo;s New
-              </Button>
               <button
+                type="button"
                 onClick={openCraftVideo}
-                className="group inline-flex w-full cursor-pointer items-center justify-center gap-2.5 border-b border-stone-400 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-700 transition-colors duration-150 hover:border-clay-500 hover:text-clay-700 sm:w-auto"
+                aria-haspopup="dialog"
+                className="group inline-flex w-full cursor-pointer items-center justify-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-700 transition-colors duration-150 hover:text-clay-700 sm:w-auto"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-400 transition-colors duration-150 group-hover:border-clay-500 group-hover:bg-clay-50">
-                  <Play size={11} strokeWidth={2.5} className="ml-0.5" aria-hidden="true" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-300 transition-colors duration-150 group-hover:border-clay-500 group-hover:bg-clay-50">
+                  <Play size={11} strokeWidth={2.5} className="ml-0.5 text-stone-700 group-hover:text-clay-700" aria-hidden="true" />
                 </span>
-                Watch the Craft
+                <span>Watch the Craft</span>
               </button>
             </div>
 
-            {/* Quick metrics ticker */}
-            <div className="mt-1 grid grid-cols-3 gap-4 border-t border-stone-300/60 pt-5 text-stone-900">
+            {/* Editorial provenance stats */}
+            <div className="mt-2 grid grid-cols-3 gap-4 border-t border-[#E8E4DE] pt-5 text-stone-900">
               <div>
                 <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
                   {CATALOG_SIZE}
                 </p>
-                <p className="text-[10px] uppercase tracking-wider text-stone-500">Curated Styles</p>
+                <p className="text-[10px] uppercase tracking-wider text-stone-500">Curated Pieces</p>
               </div>
               <div>
                 <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
                   {ATELIER_COUNT}
                 </p>
-                <p className="text-[10px] uppercase tracking-wider text-stone-500">Named Ateliers</p>
+                <p className="text-[10px] uppercase tracking-wider text-stone-500">Heritage Workshops</p>
               </div>
               <div>
                 <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
-                  {REGION_COUNT} → 38
+                  {REGION_COUNT}
                 </p>
-                <p className="text-[10px] uppercase tracking-wider text-stone-500">Regions → Provinces</p>
+                <p className="text-[10px] uppercase tracking-wider text-stone-500">Archipelago Regions</p>
               </div>
             </div>
           </div>
 
-          {/* Hero Visual — Ken Burns settle + grain */}
+          {/* Hero Visual — Ken Burns settle + grain + unified product link */}
           <div className="relative lg:col-span-5">
-            <div className="grain-overlay relative mx-auto aspect-[4/5] w-full max-w-[368px] overflow-hidden border border-stone-300/60 bg-stone-200 shadow-sm">
+            <Link
+              to="/product/lokal-classic-tee"
+              aria-label="View featured product: Classic Heavyweight Boxy Tee by Atelier Senja"
+              className="group grain-overlay relative mx-auto block aspect-[4/5] w-full max-w-[368px] overflow-hidden border border-stone-300/60 bg-stone-200 shadow-sm transition-all duration-300 hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            >
               <img
                 src="/images/editorial/hero.webp"
-                alt="Classic Heavyweight Tee from the NusaMarket lookbook"
+                alt="Model wearing Classic Heavyweight Boxy Tee crafted by Atelier Senja, Bandung"
                 width={900}
                 height={1125}
                 fetchPriority="high"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
-                className={`h-full w-full object-cover object-center ${
+                className={`h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03] ${
                   reduce ? '' : 'animate-ken-burns'
                 }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-stone-300">
-                  Lookbook 01
-                </p>
-                <p className="text-xs font-semibold sm:text-sm">Classic Heavyweight Boxy Tee</p>
-                <Link
-                  to="/product/lokal-classic-tee"
-                  className="mt-2 inline-flex items-center gap-1.5 bg-white/95 p-2 text-xs text-ink backdrop-blur-xs transition-colors duration-150 hover:bg-white"
-                  aria-label="View featured tee"
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent transition-opacity duration-300 group-hover:opacity-90" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3 text-white">
+                <div>
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-stone-300">
+                    Lookbook 01 · Atelier Senja
+                  </p>
+                  <p className="mt-0.5 text-xs font-semibold sm:text-sm">Classic Heavyweight Boxy Tee</p>
+                </div>
+                <span
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center bg-white/95 text-ink backdrop-blur-xs transition-transform duration-200 group-hover:translate-x-0.5 group-hover:bg-white"
+                  aria-hidden="true"
                 >
-                  <ArrowRight size={14} aria-hidden="true" />
-                </Link>
+                  <ArrowRight size={14} />
+                </span>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
