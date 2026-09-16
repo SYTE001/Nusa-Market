@@ -339,13 +339,17 @@ body {
   100% { opacity: 0; }
 }
 
-/* Below-fold sections skip layout/paint until near the viewport. Bounded to
-   simple bands (promo, newsletter): a cv:auto section that hosts a large
-   grid re-layouts the whole subtree when its intersection observer fires,
-   which costs more than it saves — heavy grids stay eagerly rendered. */
+/* Below-fold sections skip layout/paint until near the viewport.
+   `contain-intrinsic-size` hints a placeholder width while the section is
+   skipped. That hint becomes the section's reported width, so it must never
+   exceed the real column width — on a 390px phone a 400px hint makes the
+   whole page overflow horizontally. Restricting the utility to >=640px keeps
+   the render savings where they matter and keeps small screens exact. */
 @utility below-fold {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
+  @media (width >= 640px) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
+  }
 }
 
 /* ---------------------------------------------------------------------------

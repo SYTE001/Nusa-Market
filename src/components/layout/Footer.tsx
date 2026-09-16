@@ -50,7 +50,7 @@ export function Footer() {
             <p className="text-xs text-stone-500 leading-relaxed max-w-sm">
               An editorial commerce platform dedicated to contemporary Indonesian craftsmanship — hand-stamped batik, natural-dye tenun, and heavyweight cut-and-sew.
             </p>
-            <div className="pt-2 flex items-center gap-4 text-xs text-stone-500">
+            <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500">
               <span>Pekalongan</span>
               <span>·</span>
               <span>Bandung</span>
