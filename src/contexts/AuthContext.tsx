@@ -148,16 +148,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setAuthPersistence(true);
       const supabase = requireSupabase();
-      const { error } = await supabase.auth.signInWithOAuth({
+      // skipBrowserRedirect lets us validate the handoff before leaving the
+      // page. Supabase returns the authorize URL without an error even when
+      // the provider is disabled — the browser would otherwise navigate to
+      // a raw JSON error page with no way back. Checking the endpoint first
+      // turns that dead end into an in-page message.
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/account` },
+        options: {
+          redirectTo: `${window.location.origin}/account`,
+          skipBrowserRedirect: true,
+        },
       });
       if (error) return { error: authErrorMessage(error) };
-      // Success means the browser is about to hand off to Google; the page
-      // stays on its submit state until the redirect completes.
+      if (!data?.url) return { error: 'Google sign-in could not start.' };
+
+      const check = await fetch(data.url, { method: 'GET', redirect: 'follow' });
+      if (!check.ok) {
+        return {
+          error:
+            'Google sign-in is not enabled on this project yet. Enable the Google provider in the Supabase dashboard, or sign in with your email.',
+        };
+      }
+      // Provider is live — now commit to the OAuth handoff.
+      window.location.assign(data.url);
       return { error: null };
     } catch (error) {
-      return { error: authErrorMessage(error) };
+      return { error: authErrorMessage(error) }
     }
   }, []);
 
