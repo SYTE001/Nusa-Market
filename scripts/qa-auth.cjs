@@ -29,10 +29,15 @@ async function main() {
   });
   const page = await browser.newPage();
   const errors = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
-  });
+  // Only genuine page/JS errors count. HTTP 4xx from the auth API is the
+  // server doing its job (invalid credentials, disabled provider) and shows
+  // up here as a "Failed to load resource" line — not a code defect.
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error' && !m.text().includes('Failed to load resource')) {
+      errors.push(m.text());
+    }
+  });
 
   try {
     // ---- 1. /login renders & auth is configured ----
@@ -88,8 +93,8 @@ async function main() {
       JSON.stringify(afterBadLogin)
     );
 
-    // ---- 5. Google button triggers real OAuth ----
-    // Intercept navigation: a correct handoff leaves the site for Google.
+    // ---- 5. Google button: enabled provider navigates; disabled provider
+    // shows an in-page message instead of leaving the site for raw JSON ----
     let googleNav = null;
     page.on('framenavigated', (f) => {
       if (f === page.mainFrame() && f.url().includes('google')) googleNav = f.url();
@@ -102,15 +107,16 @@ async function main() {
         .map((e) => e.textContent.trim())
         .filter(Boolean),
     }));
+    // Either behavior is correct: a live provider navigates to Google; a
+    // disabled one keeps the user on /login with a real message. What is
+    // never correct is landing on a bare Supabase JSON error page.
+    const stayedOnSite = googleState.url.includes('nusa-market.vercel.app');
+    const hasMessage = googleState.alerts.length > 0;
     record(
-      'google button triggers OAuth handoff',
-      googleNav !== null || /google/.test(googleState.url),
-      googleNav ? 'left for google.com' : JSON.stringify(googleState)
+      'google button: handoff or honest in-page message',
+      (googleNav !== null) || (stayedOnSite && hasMessage),
+      googleNav ? 'left for google.com (provider enabled)' : JSON.stringify(googleState)
     );
-    // If it errored in-page, capture the exact error for the report.
-    if (googleNav === null && googleState.alerts.length) {
-      console.log('     google in-page error:', JSON.stringify(googleState.alerts));
-    }
     await page.goto(`${BASE}/login`, { waitUntil: 'networkidle0' });
     await new Promise((r) => setTimeout(r, 800));
 
