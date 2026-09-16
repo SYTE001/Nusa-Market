@@ -103,7 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email, password, remember) => {
       try {
         setAuthPersistence(remember);
-        await requireSupabase().auth.signInWithPassword({ email, password });
+        // supabase-js v2 RESOLVES with { data, error } on a failed sign-in —
+        // it does not throw. Reading the return value is the only way the
+        // credential error ever reaches the user.
+        const { error } = await requireSupabase().auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) return { error: authErrorMessage(error), needsEmailConfirmation: false };
         return { error: null, needsEmailConfirmation: false };
       } catch (error) {
         return { error: authErrorMessage(error), needsEmailConfirmation: false };
