@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local env (Supabase credentials) — copy from .env.example
+.env
+.env.local
+.env.*.local

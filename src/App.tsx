@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
+import { AuthGuard, GuestGuard } from './components/auth/AuthGuard';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
@@ -13,6 +14,10 @@ const JournalPage = lazy(() => import('./pages/JournalPage'));
 const CaseStudyPage = lazy(() => import('./pages/CaseStudyPage'));
 const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AccountPage = lazy(() => import('./pages/AccountPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 
 export default function App() {
   return (
@@ -21,6 +26,15 @@ export default function App() {
           the outlet, so a chunk still loading does not take the header, the
           footer and the cart drawer down with it. */}
       <Routes>
+        {/* Full-bleed auth pages: AuthShell renders its own canvas without the
+            header, footer and cart drawer, so they live outside <Layout>.
+            GuestGuard keeps signed-in users off the sign-in and register forms. */}
+        <Route element={<GuestGuard />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+        </Route>
+        <Route path="auth/reset" element={<ResetPasswordPage />} />
+
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="shop" element={<ShopPage />} />
@@ -33,6 +47,16 @@ export default function App() {
           <Route path="case-study" element={<CaseStudyPage />} />
           <Route path="design-system" element={<DesignSystemPage />} />
           <Route path="admin" element={<AdminPage />} />
+          {/* Protected: the guard redirects to /login?next= while the session
+              resolves, never before. */}
+          <Route
+            path="account"
+            element={
+              <AuthGuard>
+                <AccountPage />
+              </AuthGuard>
+            }
+          />
           <Route
             path="*"
             element={

@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, Heart, ShoppingBag, Menu, X, User, LogOut } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useWishlistStore } from '../../stores/wishlistStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { SearchModal } from '../search/SearchModal';
 
@@ -15,8 +16,11 @@ export function Navbar() {
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const mobilePanelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bagRef = useRef<HTMLButtonElement>(null);
+
+  const { user, signOut } = useAuth();
 
   const totalItems = useCartStore((s) => s.totalItems());
   const wishlistCount = useWishlistStore((s) => s.ids.length);
@@ -116,9 +120,18 @@ export function Navbar() {
   const onShop = location.pathname === '/shop';
   const onProduct = location.pathname.startsWith('/product/');
   const onWishlist = location.pathname === '/wishlist';
+  const onAccount = location.pathname === '/account';
   const onJournal = location.pathname === '/journal';
   const isNewArrivalsActive = onShop && searchParams.get('sort') === 'newest';
   const sectionHash = location.hash === '#collections' || location.hash === '#artisans' ? location.hash : '';
+
+  // Signing out from the mobile menu returns to the storefront — the account
+  // page would only redirect to /login anyway once the session is gone.
+  async function handleSignOut() {
+    closeMobileMenu();
+    await signOut();
+    navigate('/', { replace: true });
+  }
 
   const navLinks = [
     { label: 'Home', to: '/', isActive: onHome && !sectionHash, current: 'page' as const },
@@ -207,6 +220,26 @@ export function Navbar() {
             >
               <Search size={18} strokeWidth={1.75} />
             </button>
+            <Link
+              to={user ? '/account' : '/login'}
+              aria-label={
+                user
+                  ? `Account, signed in as ${user.email}`
+                  : 'Sign in or create an account'
+              }
+              aria-current={onAccount ? 'page' : undefined}
+              className={`relative flex h-9 w-9 items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer ${
+                onAccount ? 'text-ink' : 'text-stone-600 hover:text-ink'
+              }`}
+            >
+              <User size={18} strokeWidth={1.75} />
+              {user && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-clay-500"
+                />
+              )}
+            </Link>
             <Link
               to="/wishlist"
               aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? 'item' : 'items'}`}
@@ -305,6 +338,41 @@ export function Navbar() {
               <span>Shopping Bag ({totalItems})</span>
               <ShoppingBag size={16} strokeWidth={1.5} aria-hidden="true" />
             </Link>
+
+            {user ? (
+              <>
+                <Link
+                  to="/account"
+                  onClick={closeMobileMenu}
+                  aria-current={onAccount ? 'page' : undefined}
+                  className={`flex items-center justify-between text-sm transition-colors duration-150 active:scale-[0.99] ${
+                    onAccount
+                      ? 'font-semibold text-ink'
+                      : 'font-medium text-stone-600 hover:text-ink'
+                  }`}
+                >
+                  <span>Account</span>
+                  <User size={16} strokeWidth={1.5} aria-hidden="true" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex cursor-pointer items-center justify-between text-sm font-medium text-stone-600 transition-colors duration-150 hover:text-ink active:scale-[0.99]"
+                >
+                  <span>Sign out</span>
+                  <LogOut size={16} strokeWidth={1.5} aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                onClick={closeMobileMenu}
+                className="flex items-center justify-between text-sm font-medium text-stone-600 transition-colors duration-150 hover:text-ink active:scale-[0.99]"
+              >
+                <span>Sign in / Register</span>
+                <User size={16} strokeWidth={1.5} aria-hidden="true" />
+              </Link>
+            )}
           </div>
         </nav>
 

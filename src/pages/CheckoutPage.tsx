@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import { shippingCostFor, formatRupiah, generateOrderId } from '../utils';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { useAuth } from '../hooks/useAuth';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const schema = z.object({
@@ -47,13 +48,24 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank-transfer');
   const [submitting, setSubmitting] = useState(false);
 
+  // A signed-in member does not retype their own name and email. The session
+  // resolves after the first paint on a page refresh, so this also fills the
+  // fields in once it arrives. Guests check out exactly as before.
+  const { user } = useAuth();
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
+
+  useEffect(() => {
+    if (!user) return;
+    reset({ name: user.name, email: user.email });
+  }, [user, reset]);
 
   const shippingCost = shippingCostFor(shippingMethod, subtotal);
   const total = subtotal + shippingCost;
