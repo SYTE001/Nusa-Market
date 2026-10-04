@@ -5,9 +5,20 @@ ecommerce front end built with React, TypeScript and Tailwind CSS — from catal
 browsing through checkout and order confirmation, with **provenance as product
 data**: every piece carries its atelier, region, material and process.
 
-> Front-end only. There is no backend, no payment processing and no account
-> system: the catalog is typed local data and the order flow resolves in the
-> browser. Everything described below is implemented and interactive.
+<!-- Live demo: add your Vercel URL here after deploying (P1) -->
+> **Live demo:** _[deploying to Vercel — paste the URL here]_
+
+![CI](https://github.com/SYTE001/Nusa-Market/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+| Home | Product detail | Checkout |
+| --- | --- | --- |
+| ![Home](docs/screenshots/home.jpg) | ![Product detail](docs/screenshots/product.jpg) | ![Checkout](docs/screenshots/checkout.jpg) |
+
+> Storefront front end backed by **Supabase auth**. There is no payment
+> processing: the catalog is typed local data, the order flow resolves in the
+> browser, and accounts (email/password + Google sign-in) run on Supabase.
+> Everything described below is implemented and interactive.
 
 ---
 
@@ -87,6 +98,18 @@ Sumatra, Java and Bali, priced in Indonesian Rupiah.
   scale, component inventory
 - **Admin** (`/admin`) — passcode-gated catalog console (demo gate: `nusa2026`)
 
+**Auth (new)**
+
+- Email/password sign-in, registration and reset-password flows on Supabase
+- Google sign-in via OAuth — tokens exchanged on redirect, no raw error pages
+- "Remember me" controls session persistence: localStorage when checked,
+  sessionStorage when not — sign-in ends with the tab
+- `AuthGuard`-protected `/account` route with a profile view
+- Errors are translated into storefront copy (`lib/authErrors.ts`) — no
+  backend prose reaches the UI
+- Degrades honestly when unconfigured: without Supabase env vars the app
+  builds and runs, and auth surfaces say so instead of pretending
+
 **States**
 
 - Layout-matched skeletons for the grid and product detail
@@ -105,11 +128,12 @@ Sumatra, Java and Bali, priced in Indonesian Rupiah.
 | State | Zustand 5 | Small stores, `persist` middleware for cart and wishlist |
 | Motion | Framer Motion 12 | Fly-to-cart, spring drawers, scroll reveals — all reduced-motion aware |
 | Forms | React Hook Form + Zod | Schema-driven validation, errors beside their fields |
+| Auth | Supabase | Email/password + Google OAuth, session persistence, typed error mapping |
 | Icons | lucide-react | Consistent stroke weight at small sizes |
 | Linting | oxlint | Fast flat-config lint pass |
 | Imagery | sharp (dev) | Deterministic studio-tile placeholder pipeline — `npm run images` |
 
-Nine runtime dependencies. No component library, no data-fetching client — the
+Ten runtime dependencies. No component library, no data-fetching client — the
 mock service layer is a promise.
 
 ## Design Direction
@@ -172,7 +196,7 @@ route that exists.
 ```
 src/
 ├── App.tsx                  route table — lazy pages incl. journal,
-│                            case-study, design-system, admin
+│                            case-study, design-system, admin, auth flows
 ├── index.css                Tailwind v4 theme: tokens, textures, motion scale
 ├── components/
 │   ├── ui/                  Button (magnetic), Input, Dropdown, Badge, Rating,
@@ -182,16 +206,21 @@ src/
 │   │                        ProductReviews
 │   ├── cart/                CartDrawer, CartItem, CartSummary, FlyToCartLayer
 │   ├── search/              SearchModal, SearchResultRow, SearchChip
+│   ├── auth/                AuthGuard, AuthShell, GoogleButton, PasswordField
 │   └── sections/            NewsletterForm
 ├── pages/                   Home, Shop (+region), ProductDetail (+craft tabs),
 │                            Wishlist, Cart, Checkout, OrderSuccess, Journal,
-│                            CaseStudy, DesignSystem, Admin
+│                            CaseStudy, DesignSystem, Admin, Login, Register,
+│                            ResetPassword, Account
+├── contexts/                AuthContext — Supabase session + profile state
+├── lib/                     supabase client, authErrors mapping
 ├── data/                    products.ts (24 typed + provenance), artisans.ts,
 │                            journal.ts, reviews.ts
 ├── services/                productService — the single data seam
 ├── stores/                  cartStore, wishlistStore, orderStore, uiStore
 ├── hooks/                   useScrollLock, useFocusTrap, useDocumentTitle
 ├── types/                   Product (region + craft), Order, FilterState
+├── test/                    shared test factories + setup
 └── utils/                   currency, shipping, order ids, image resolver
 ```
 
@@ -205,6 +234,10 @@ fly-to-cart) persist nowhere.
 
 ## Verification
 
+- `npm test` — **31 unit/component tests** (Vitest + Testing Library): cart
+  store (add / merge / update / remove / totals), utils (currency, shipping,
+  image variants), auth error mapping, and ProductCard (price render, wishlist
+  toggle, quick-add variant)
 - `npm run typecheck` — clean (strict)
 - `npm run lint` — no errors (pedantic warnings only: long data files, long page components)
 - `npm run build` — production bundle ~250 kB js gzip ~77 kB; **no animation library** —
@@ -242,16 +275,29 @@ The dev server runs at `http://localhost:5173`.
 | `npm run lint` | oxlint across the project |
 | `npm run build` | Typecheck, then production bundle to `dist/` |
 | `npm run preview` | Serve the built bundle locally |
+| `npm test` | Vitest run (unit + component tests) |
 | `npm run images` | Regenerate placeholder imagery (never overwrites real files) |
 | `node scripts/qa-headless.cjs` | Headless route + interaction QA |
+| `node scripts/qa-shots.cjs` | Screenshot capture (preview server must be running) |
 
-No environment variables are required — there is nothing to configure.
+Supabase auth is optional at build time. With no env vars set the app builds
+and runs, and the auth surfaces show an honest "not configured" notice; to
+enable accounts, set:
+
+```bash
+VITE_SUPABASE_URL=https://<project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key>
+```
+
+Only the anon key belongs in the client — never the service-role key.
 
 ## Deployment
 
 A static single-page app: `npm run build` emits `dist/`, which any static host
 can serve. `vercel.json` is included and rewrites non-asset paths to
 `index.html`. Deploying elsewhere needs the equivalent SPA fallback rule.
+Supabase auth requires a redirect-allowlist entry for the deployed origin
+(Google OAuth callbacks land on `/` with tokens in the URL).
 
 ## Product Images
 
@@ -264,10 +310,12 @@ always win and `npm run images` only fills gaps.
 ## Project Status
 
 Feature-complete as a front-end demonstration. Every route, control and state
-described above is implemented and interactive.
+described above is implemented and interactive. Account sign-in (email/password
+and Google) runs on Supabase; the catalog and order flow remain local data
+behind the service seam.
 
 Deliberately out of scope — storefront concept, not a commerce platform:
-authentication, payment processing, persistent orders, CMS-managed content.
+payment processing, persistent orders in a database, CMS-managed content.
 
 Known limitations:
 
@@ -278,5 +326,5 @@ Known limitations:
 - **Static stock.** Stock counts are fixed per product; nothing decrements on
   purchase.
 - **Admin is a demo gate.** The `/admin` passcode (documented: `nusa2026`) is a
-  client-side pattern showing the protected-route shape; real auth would
-  replace the challenge.
+  client-side pattern showing the protected-route shape; user-facing routes
+  (`/account`) use the real Supabase `AuthGuard` instead.

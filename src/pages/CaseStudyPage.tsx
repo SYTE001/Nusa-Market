@@ -137,6 +137,43 @@ export default function CaseStudyPage() {
           and document the trade-off.
         </p>
         <p>
+          <strong>The data seam, and what it costs.</strong> Pages never import{' '}
+          <code className="font-mono-data text-xs bg-stone-100 px-1">data/products.ts</code> —
+          they call <code className="font-mono-data text-xs bg-stone-100 px-1">productService</code>,
+          an async module that resolves typed local data through a promise. Swapping the
+          catalog for a real API (or Supabase, which the auth layer already does) is a
+          change to that one file. The trade-off is honest: one indirection layer every
+          page must route through, and simulated latency that a local-data demo does not
+          strictly need. I kept both, because a seam that only exists after the rewrite is
+          a seam that never gets built — and the skeletons and error states the promise
+          makes possible are load-bearing UI, not decoration.
+        </p>
+        <p>
+          <strong>Motion without a library.</strong> Framer Motion is the obvious choice
+          for fly-to-cart, and it was deliberately left out. The ghost chip is ~40 lines
+          of Web Animations API: <code className="font-mono-data text-xs bg-stone-100 px-1">element.animate()</code>{' '}
+          with a cubic-bezier toward the bag button's live position, re-resolved on
+          scroll; drawers and reveals are CSS transitions and keyframes; scroll-linked
+          motion is IntersectionObserver. Every path checks{' '}
+          <code className="font-mono-data text-xs bg-stone-100 px-1">prefers-reduced-motion</code>{' '}
+          first. The trade-off: hand-rolled motion has no interruptible-spring primitives,
+          so complex choreography would get hairy fast — the Web Animations API handles
+          this demo's vocabulary (one flight, one spring, one reveal) exactly, and the bundle
+          pays zero for it. If a future feature needed orchestrated multi-element springs,
+          adding the library at that point is cheaper than having carried it since day one.
+        </p>
+        <p>
+          <strong>State is split by lifetime</strong>: cart and wishlist persist to
+          localStorage; the completed order lives in sessionStorage so a receipt survives a
+          refresh but not a new tab; UI flags (drawers, overlays) persist nowhere. Each
+          choice maps to what the data means: a bag outlives the tab, an order receipt
+          outlives a refresh but not a visit, and an open drawer means nothing tomorrow.
+          Zustand stores stay dumb; components read them through selectors. The trade-off
+          is three persistence decisions to explain instead of one `persist everything`
+          default — but a bag that resurrects itself in a fresh tab, or UI state leaking
+          across visits, are the exact bugs this split makes impossible.
+        </p>
+        <p>
           <strong>Provenance in the type system.</strong> The{' '}
           <code className="font-mono-data text-xs bg-stone-100 px-1">Product</code> type grew
           a <code className="font-mono-data text-xs bg-stone-100 px-1">region</code> union
@@ -146,20 +183,10 @@ export default function CaseStudyPage() {
           persists in the URL like every other filter — shareable, bookmarkable, back-button-safe.
         </p>
         <p>
-          <strong>State is split by lifetime</strong>: cart and wishlist persist to
-          localStorage; the completed order lives in sessionStorage so a receipt survives a
-          refresh but not a new tab; UI flags (drawers, overlays) persist nowhere.
-          Zustand stores stay dumb; components read them through selectors.
-        </p>
-        <p>
-          <strong>Optimistic motion, honest fallbacks.</strong> Fly-to-cart uses a
-          framer-motion ghost chip animating toward the bag button’s live position
-          (resolved per frame, so it lands after scroll). Every animation path checks{' '}
-          <code className="font-mono-data text-xs bg-stone-100 px-1">useReducedMotion</code>{' '}
-          first, and the global CSS collapses durations to near-zero. Images: every surface
-          has an <code className="font-mono-data text-xs bg-stone-100 px-1">onError</code>{' '}
-          fallback tile, so a missing photo degrades to a typographic brand tile instead of
-          a broken-image icon.
+          <strong>Images fail gracefully.</strong> Every surface has an{' '}
+          <code className="font-mono-data text-xs bg-stone-100 px-1">onError</code>{' '}
+          fallback chain — a missing mobile variant retries the master file, and a missing
+          photo degrades to a typographic brand tile instead of a broken-image icon.
         </p>
       </Section>
 
